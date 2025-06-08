@@ -3,9 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class Pelanggan extends Model
+class Pelanggan extends Authenticatable
 {
+    use Notifiable;
+    
     protected $table = 'pelanggan';
     protected $primaryKey = 'id_pelanggan';
     public $incrementing = false;
@@ -15,9 +19,26 @@ class Pelanggan extends Model
     protected $fillable = [
         'id_pelanggan',
         'nama',
+        'email',
         'telepon',
         'alamat',
+        'tanggal_lahir',
+        'kata_sandi',
+        'status_akun',
     ];
+
+    protected $hidden = [
+        'kata_sandi',
+    ];
+
+    protected $casts = [
+        'tanggal_lahir' => 'date',
+    ];
+
+    public function getAuthPassword()
+    {
+        return $this->kata_sandi;
+    }
 
     public function pesanan()
     {

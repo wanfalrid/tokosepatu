@@ -98,9 +98,7 @@
         .navbar-nav .nav-link:hover::after,
         .navbar-nav .nav-link.active::after {
             width: 100%;
-        }
-
-        .cart-icon {
+        }        .cart-icon {
             position: relative;
             color: var(--text-dark);
             font-size: 1.2rem;
@@ -121,6 +119,37 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
+        }
+
+        /* User Dropdown Styles */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: var(--border-radius);
+            padding: 0.5rem 0;
+            min-width: 220px;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-light);
+            color: var(--secondary-color);
+        }
+
+        .dropdown-header {
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 0;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
         }
 
         /* Button Styles */
@@ -278,18 +307,72 @@
                         <a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}" href="{{ route('contact') }}">Kontak</a>
                     </li>
                 </ul>
-                
-                <div class="d-flex align-items-center">
+                  <div class="d-flex align-items-center">
                     <form class="d-flex me-3" action="{{ route('produk.search') }}" method="GET">
                         <input class="form-control me-2" type="search" name="q" placeholder="Cari sepatu..." aria-label="Search" value="{{ request('q') }}">
                         <button class="btn btn-outline-secondary" type="submit">
                             <i class="fas fa-search"></i>
                         </button>
                     </form>
-                      <a href="{{ route('cart.index') }}" class="cart-icon">
+                    
+                    <a href="{{ route('cart.index') }}" class="cart-icon me-3">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-badge cart-count" id="cart-count">{{ $cartCount ?? 0 }}</span>
                     </a>
+                    
+                    @auth('customer')
+                        <!-- Customer Dropdown Menu -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user me-2"></i>
+                                <span class="d-none d-sm-inline">{{ Auth::guard('customer')->user()->nama }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <h6 class="dropdown-header">
+                                        <i class="fas fa-user-circle me-2"></i>
+                                        {{ Auth::guard('customer')->user()->nama }}
+                                    </h6>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('auth.profile') }}">
+                                        <i class="fas fa-user-edit me-2"></i>Profil Saya
+                                    </a>
+                                </li>                                <li>
+                                    <a class="dropdown-item" href="{{ route('auth.orders') }}">
+                                        <i class="fas fa-shopping-bag me-2"></i>Pesanan Saya
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-heart me-2"></i>Wishlist
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('auth.logout') }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @else
+                        <!-- Guest Buttons -->
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('auth.login') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-sign-in-alt me-1"></i>
+                                <span class="d-none d-sm-inline">Masuk</span>
+                            </a>
+                            <a href="{{ route('auth.register') }}" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-1"></i>
+                                <span class="d-none d-sm-inline">Daftar</span>
+                            </a>
+                        </div>
+                    @endauth
                 </div>
             </div>
         </div>

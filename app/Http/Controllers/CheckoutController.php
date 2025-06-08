@@ -10,6 +10,7 @@ use App\Models\TrackingPesanan;
 use App\Models\Produk;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
 {
@@ -21,6 +22,9 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong.');
         }
         
+        // Get customer data if logged in
+        $customer = Auth::guard('customer')->user();
+        
         // Calculate totals
         $subtotal = 0;
         foreach ($cart as $item) {
@@ -31,12 +35,10 @@ class CheckoutController extends Controller
         $shipping = 0; // Free shipping
         $total = $subtotal + $tax + $shipping;
         
-        return view('checkout.index', compact('cart', 'subtotal', 'tax', 'shipping', 'total'));
+        return view('checkout.index', compact('cart', 'subtotal', 'tax', 'shipping', 'total', 'customer'));
     }
-    
-    public function store(Request $request)
-    {
-        $request->validate([
+      public function store(Request $request)
+    {        $request->validate([
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'telepon' => 'required|string|max:20',
@@ -51,6 +53,9 @@ class CheckoutController extends Controller
         if (empty($cart)) {
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong.');
         }
+        
+        // Get customer data if logged in
+        $customer = Auth::guard('customer')->user();
         
         DB::beginTransaction();
         
@@ -68,7 +73,7 @@ class CheckoutController extends Controller
             // Create order
             $pesanan = Pesanan::create([
                 'id_pesanan' => 'ORD-' . strtoupper(Str::random(8)),
-                'id_pelanggan' => null, // For guest checkout
+                'id_pelanggan' => $customer ? $customer->id_pelanggan : null, // Link to customer if logged in
                 'tanggal_pesanan' => now(),
                 'status_pesanan' => 'pending',
                 'total_harga' => $total,
