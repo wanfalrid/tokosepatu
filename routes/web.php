@@ -56,6 +56,7 @@ Route::prefix('auth')->name('auth.')->group(function () {
         Route::post('logout', [CustomerAuthController::class, 'logout'])->name('logout');
         Route::get('profile', [CustomerAuthController::class, 'profile'])->name('profile');
         Route::put('profile', [CustomerAuthController::class, 'updateProfile'])->name('profile.update');
+        Route::delete('profile/photo', [CustomerAuthController::class, 'deletePhoto'])->name('profile.photo.delete');
         
         // Customer order history
         Route::get('orders', [CustomerAuthController::class, 'orders'])->name('orders');

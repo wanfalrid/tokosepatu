@@ -146,10 +146,31 @@
             margin-bottom: 0;
             font-size: 0.85rem;
             color: var(--text-dark);
+        }        .dropdown-divider {
+            margin: 0.5rem 0;
         }
 
-        .dropdown-divider {
-            margin: 0.5rem 0;
+        /* User Avatar Styles */
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--secondary-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: var(--transition);
+        }        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .user-avatar-small {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--secondary-color);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
         /* Button Styles */
@@ -319,18 +340,28 @@
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-badge cart-count" id="cart-count">{{ $cartCount ?? 0 }}</span>
                     </a>
-                    
-                    @auth('customer')
+                      @auth('customer')
                         <!-- Customer Dropdown Menu -->
                         <div class="dropdown">
                             <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user me-2"></i>
+                                @if(Auth::guard('customer')->user()->hasFoto())
+                                    <img src="{{ Auth::guard('customer')->user()->foto_url }}" 
+                                         alt="Foto Profil" 
+                                         class="user-avatar me-2">
+                                @else
+                                    <i class="fas fa-user me-2"></i>
+                                @endif
                                 <span class="d-none d-sm-inline">{{ Auth::guard('customer')->user()->nama }}</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <h6 class="dropdown-header">
-                                        <i class="fas fa-user-circle me-2"></i>
+                            <ul class="dropdown-menu dropdown-menu-end">                                <li>
+                                    <h6 class="dropdown-header d-flex align-items-center">
+                                        @if(Auth::guard('customer')->user()->hasFoto())
+                                            <img src="{{ Auth::guard('customer')->user()->foto_url }}" 
+                                                 alt="Foto Profil" 
+                                                 class="user-avatar-small me-2">
+                                        @else
+                                            <i class="fas fa-user-circle me-2"></i>
+                                        @endif
                                         {{ Auth::guard('customer')->user()->nama }}
                                     </h6>
                                 </li>

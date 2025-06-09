@@ -73,9 +73,7 @@
                                     {{ session('success') }}
                                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                                 </div>
-                                @endif
-
-                                <form action="{{ route('login') }}" method="POST" class="auth-form">
+                                @endif                                <form action="{{ route('auth.authenticate') }}" method="POST" class="auth-form">
                                     @csrf
                                     
                                     <div class="form-group mb-3">
