@@ -14,7 +14,7 @@ class Pelanggan extends Authenticatable
     protected $primaryKey = 'id_pelanggan';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = true;
+    public $timestamps = false;
 
     protected $fillable = [
         'id_pelanggan',
@@ -25,7 +25,6 @@ class Pelanggan extends Authenticatable
         'tanggal_lahir',
         'kata_sandi',
         'status_akun',
-        'foto',
     ];
 
     protected $hidden = [
@@ -44,24 +43,5 @@ class Pelanggan extends Authenticatable
     public function pesanan()
     {
         return $this->hasMany(Pesanan::class, 'id_pelanggan', 'id_pelanggan');
-    }
-    
-    /**
-     * Get the full URL for the profile photo
-     */
-    public function getFotoUrlAttribute()
-    {
-        if ($this->foto) {
-            return asset('storage/profile_photos/' . $this->foto);
-        }
-        return null;
-    }
-    
-    /**
-     * Check if customer has a profile photo
-     */
-    public function hasFoto()
-    {
-        return !empty($this->foto) && file_exists(storage_path('app/public/profile_photos/' . $this->foto));
     }
 }

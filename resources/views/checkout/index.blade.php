@@ -88,13 +88,13 @@
                             <div class="section-body">
                                 <div class="row g-3">                                    <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control @error('nama') is-invalid @enderror" 
-                                                   id="nama" name="nama" placeholder="Nama Lengkap" 
-                                                   value="{{ old('nama', $customer ? $customer->nama : '') }}" required>
-                                            <label for="nama">
+                                            <input type="text" class="form-control @error('nama_lengkap') is-invalid @enderror" 
+                                                   id="nama_lengkap" name="nama_lengkap" placeholder="Nama Lengkap" 
+                                                   value="{{ old('nama_lengkap', $customer ? $customer->nama : '') }}" required>
+                                            <label for="nama_lengkap">
                                                 <i class="fas fa-user me-2"></i>Nama Lengkap
                                             </label>
-                                            @error('nama')
+                                            @error('nama_lengkap')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>

@@ -29,48 +29,6 @@ class Produk extends Model
         'stok' => 'integer',
     ];
 
-    // Helper methods
-    public function getFormattedPriceAttribute()
-    {
-        return 'Rp ' . number_format($this->harga, 0, ',', '.');
-    }
-
-    public function getStockStatusAttribute()
-    {
-        if ($this->stok > 10) {
-            return 'In Stock';
-        } elseif ($this->stok > 0) {
-            return 'Low Stock';
-        } else {
-            return 'Out of Stock';
-        }
-    }
-
-    public function getStockStatusColorAttribute()
-    {
-        switch ($this->stock_status) {
-            case 'In Stock':
-                return 'success';
-            case 'Low Stock':
-                return 'warning';
-            case 'Out of Stock':
-                return 'danger';
-            default:
-                return 'secondary';
-        }
-    }
-
-    public function getDiscountPriceAttribute()
-    {
-        // Example: 10% discount
-        return $this->harga * 0.9;
-    }
-
-    public function getFormattedDiscountPriceAttribute()
-    {
-        return 'Rp ' . number_format($this->discount_price, 0, ',', '.');
-    }
-
     public function detailPesanan()
     {
         return $this->hasMany(DetailPesanan::class, 'id_produk', 'id_produk');
