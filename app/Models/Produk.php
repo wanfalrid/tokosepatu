@@ -27,6 +27,7 @@ class Produk extends Model
     protected $casts = [
         'harga' => 'decimal:2',
         'stok' => 'integer',
+        'dibuat_pada' => 'datetime',
     ];
 
     public function detailPesanan()

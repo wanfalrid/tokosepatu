@@ -157,9 +157,8 @@
                                             Rp {{ number_format($pesanan->total_harga, 0, ',', '.') }}
                                         </span>
                                     </td>
-                                    <td>
-                                        <span class="badge 
-                                            @if($pesanan->status_pesanan == 'pending') bg-warning
+                                    <td>                                        <span class="badge 
+                                            @if($pesanan->status_pesanan == 'menunggu') bg-warning
                                             @elseif($pesanan->status_pesanan == 'diproses') bg-info
                                             @elseif($pesanan->status_pesanan == 'dikirim') bg-primary
                                             @elseif($pesanan->status_pesanan == 'selesai') bg-success
@@ -345,7 +344,7 @@
     }
 
     .stats-number {
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 700;
         color: #2c3e50;
         margin-bottom: 0.5rem;

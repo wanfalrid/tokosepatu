@@ -18,6 +18,7 @@ class Pesanan extends Model
         'total_harga',
         'status_pesanan',
         'metode_pengiriman',
+        'payment_status',
         'tanggal_pesanan',
         'estimasi_selesai',
         'nomor_resi',
@@ -26,6 +27,7 @@ class Pesanan extends Model
         'nama_penerima',
         'telepon_penerima',
         'email_penerima',
+        'catatan_pesanan',
         'dibuat_pada',
     ];
 

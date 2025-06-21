@@ -44,9 +44,8 @@
             <div class="stats-mini-card stats-warning">
                 <div class="stats-icon">
                     <i class="fas fa-clock"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-number">{{ $pesanan->where('status', 'pending')->count() }}</div>
+                </div>                <div class="stats-content">
+                    <div class="stats-number">{{ $pesanan->where('status_pesanan', 'menunggu')->count() }}</div>
                     <div class="stats-label">Menunggu Proses</div>
                 </div>
             </div>
@@ -55,9 +54,8 @@
             <div class="stats-mini-card stats-info">
                 <div class="stats-icon">
                     <i class="fas fa-truck"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-number">{{ $pesanan->where('status', 'dikirim')->count() }}</div>
+                </div>                <div class="stats-content">
+                    <div class="stats-number">{{ $pesanan->where('status_pesanan', 'dikirim')->count() }}</div>
                     <div class="stats-label">Dalam Pengiriman</div>
                 </div>
             </div>
@@ -66,9 +64,8 @@
             <div class="stats-mini-card stats-success">
                 <div class="stats-icon">
                     <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stats-content">
-                    <div class="stats-number">{{ $pesanan->where('status', 'selesai')->count() }}</div>
+                </div>                <div class="stats-content">
+                    <div class="stats-number">{{ $pesanan->where('status_pesanan', 'selesai')->count() }}</div>
                     <div class="stats-label">Selesai</div>
                 </div>
             </div>
@@ -230,14 +227,13 @@
                                         </select>
                                     </div>
                                 </div>
-                            </td>
-                            <td>
+                            </td>                            <td>
                                 @if($order->pembayaran)
-                                    <span class="payment-badge payment-{{ strtolower($order->pembayaran->status) }}">
-                                        {{ ucfirst($order->pembayaran->status) }}
+                                    <span class="payment-badge payment-{{ strtolower($order->pembayaran->status_pembayaran) }}">
+                                        {{ ucfirst($order->pembayaran->status_pembayaran) }}
                                     </span>
-                                    <div class="payment-method">
-                                        <small class="text-muted">{{ $order->pembayaran->metode }}</small>
+                                    <div class="payment-amount">
+                                        <small class="text-muted">Rp {{ number_format($order->pembayaran->jumlah_bayar, 0, ',', '.') }}</small>
                                     </div>
                                 @else
                                     <span class="payment-badge payment-pending">Belum Bayar</span>

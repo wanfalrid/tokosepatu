@@ -73,20 +73,21 @@ class CheckoutController extends Controller
             
             $shipping = $shippingCosts[$request->shipping_method];
             $tax = round($subtotal * 0.11); // Calculate 11% tax
-            $total = $subtotal + $shipping + $tax;
-              // Create order
+            $total = $subtotal + $shipping + $tax;            // Create order
             $pesanan = Pesanan::create([
                 'id_pesanan' => 'ORD-' . strtoupper(Str::random(8)),
                 'id_pelanggan' => $customer ? $customer->id_pelanggan : null,
                 'tanggal_pesanan' => now(),
                 'status_pesanan' => 'menunggu', // Use correct enum value
                 'metode_pengiriman' => $request->shipping_method,
+                'payment_status' => $request->payment_method === 'cod' ? 'pending' : 'pending', // Add payment status
                 'total_harga' => $total,
                 'alamat_pengiriman' => $request->alamat,
                 'nama_penerima' => $request->nama_lengkap,
                 'telepon_penerima' => $request->telepon,
                 'email_penerima' => $request->email,
                 'ongkos_kirim' => $shipping,
+                'catatan_pesanan' => $request->catatan ?? null, // Add notes if provided
                 'dibuat_pada' => now(),
             ]);
               // Create order details
@@ -331,16 +332,14 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Gagal membuat token pembayaran: ' . $e->getMessage()], 500);
         }
     }
-    
-    /**
+      /**
      * Process payment callback from Midtrans
      */
     public function paymentCallback(Request $request)
     {
         $orderId = $request->order_id;
         $statusCode = $request->status_code;
-        $grossAmount = $request->gross_amount;
-        $signature = $request->signature_key;
+        $transactionStatus = $request->transaction_status;
         
         // Verify signature (implement signature verification for security)
         // For now, we'll proceed with processing
@@ -354,21 +353,42 @@ class CheckoutController extends Controller
         DB::beginTransaction();
         
         try {
-            $customer = Auth::guard('customer')->user();            // Create order
+            $customer = Auth::guard('customer')->user();
+            
+            // Determine payment status based on Midtrans transaction status
+            $paymentStatus = 'menunggu';
+            $orderStatus = 'menunggu';
+            
+            if ($transactionStatus === 'capture' || $transactionStatus === 'settlement') {
+                $paymentStatus = 'dibayar';
+                $orderStatus = 'diproses';
+            } elseif ($transactionStatus === 'pending') {
+                $paymentStatus = 'menunggu';
+                $orderStatus = 'menunggu';
+            } elseif (in_array($transactionStatus, ['deny', 'cancel', 'expire', 'failure'])) {
+                $paymentStatus = 'dibatalkan';
+                $orderStatus = 'dibatalkan';
+            }
+            
+            // Create order
             $pesanan = Pesanan::create([
                 'id_pesanan' => $orderId,
                 'id_pelanggan' => $customer ? $customer->id_pelanggan : null,
                 'tanggal_pesanan' => now(),
-                'status_pesanan' => $statusCode == '200' ? 'diproses' : 'menunggu', // Use correct enum values
+                'status_pesanan' => $orderStatus,
                 'metode_pengiriman' => $pendingOrder['shipping_method'],
+                'payment_status' => $paymentStatus,
                 'total_harga' => $pendingOrder['total'],
                 'alamat_pengiriman' => $pendingOrder['customer_data']['alamat'],
                 'nama_penerima' => $pendingOrder['customer_data']['nama_lengkap'],
                 'telepon_penerima' => $pendingOrder['customer_data']['telepon'],
                 'email_penerima' => $pendingOrder['customer_data']['email'],
                 'ongkos_kirim' => $pendingOrder['shipping_cost'],
+                'catatan_pesanan' => $pendingOrder['customer_data']['catatan'] ?? null,
+                'dibuat_pada' => now(),
             ]);
-              // Create order details
+            
+            // Create order details
             foreach ($pendingOrder['cart'] as $item) {
                 DetailPesanan::create([
                     'id_detail_pesanan' => 'DTL-' . strtoupper(Str::random(8)),
@@ -384,21 +404,24 @@ class CheckoutController extends Controller
                     $produk->stok -= $item['quantity'];
                     $produk->save();
                 }
-            }            // Create payment record
+            }
+            
+            // Create payment record
             $pembayaran = Pembayaran::create([
                 'id_pembayaran' => 'PAY-' . strtoupper(Str::random(8)),
                 'id_pesanan' => $pesanan->id_pesanan,
                 'jumlah' => $pendingOrder['total'],
                 'jumlah_bayar' => $pendingOrder['total'],
-                'status_pembayaran' => $statusCode == '200' ? 'dibayar' : 'menunggu', // Use correct enum values
-                'tanggal_pembayaran' => $statusCode == '200' ? now() : now(), // Always set payment date
+                'status_pembayaran' => $paymentStatus,
+                'tanggal_pembayaran' => $paymentStatus === 'dibayar' ? now() : now(),
                 'dibuat_pada' => now(),
             ]);
-              // Create tracking record
+            
+            // Create tracking record
             TrackingPesanan::create([
                 'id_tracking' => 'TRK-' . strtoupper(Str::random(8)),
                 'id_pesanan' => $pesanan->id_pesanan,
-                'status_pengiriman' => $statusCode == '200' ? 'payment_confirmed' : 'order_placed',
+                'status_pengiriman' => $paymentStatus === 'dibayar' ? 'payment_confirmed' : 'order_placed',
                 'tanggal_update' => now(),
             ]);
             

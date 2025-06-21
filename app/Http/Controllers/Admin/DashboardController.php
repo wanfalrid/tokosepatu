@@ -14,15 +14,18 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        // Statistics
+    {        // Statistics
         $totalProduk = Produk::count();
         $totalPesanan = Pesanan::count();
         $totalPelanggan = Pelanggan::count();
-        $totalPendapatan = Pembayaran::where('status_pembayaran', 'lunas')->sum('jumlah_bayar');
+        $totalPendapatan = Pembayaran::where('status_pembayaran', 'dibayar')->sum('jumlah_bayar');
         
-        // Recent orders
-        $pesananTerbaru = Pesanan::with(['pembayaran', 'detailPesanan'])
+        // Additional stats
+        $pesananMenunggu = Pesanan::where('status_pesanan', 'menunggu')->count();
+        $pesananDiproses = Pesanan::where('status_pesanan', 'diproses')->count();
+        $pesananSelesai = Pesanan::where('status_pesanan', 'selesai')->count();
+          // Recent orders
+        $pesananTerbaru = Pesanan::with(['pembayaran', 'detailPesanan.produk'])
                                  ->orderBy('tanggal_pesanan', 'desc')
                                  ->take(5)
                                  ->get();
@@ -48,9 +51,9 @@ class DashboardController extends Controller
         
         // Low stock products
         $stokRendah = Produk::where('stok', '<=', 5)->where('stok', '>', 0)->get();
-        
-        return view('admin.dashboard', compact(
+          return view('admin.dashboard', compact(
             'totalProduk', 'totalPesanan', 'totalPelanggan', 'totalPendapatan',
+            'pesananMenunggu', 'pesananDiproses', 'pesananSelesai',
             'pesananTerbaru', 'salesData', 'topProduk', 'stokRendah'
         ));
     }

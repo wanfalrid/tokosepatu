@@ -208,11 +208,10 @@
                                         </div>
                                         <div class="product-price">
                                             Rp {{ number_format($item->harga, 0, ',', '.') }}
-                                        </div>
-                                        <div class="product-date">
+                                        </div>                                        <div class="product-date">
                                             <small class="text-muted">
                                                 <i class="fas fa-calendar me-1"></i>
-                                                {{ $item->dibuat_pada ? $item->dibuat_pada->format('d/m/Y') : 'N/A' }}
+                                                {{ $item->dibuat_pada ? \Carbon\Carbon::parse($item->dibuat_pada)->format('d/m/Y') : 'N/A' }}
                                             </small>
                                         </div>
                                     </div>
@@ -270,10 +269,9 @@
                                             @else
                                                 <span class="badge bg-success">Tersedia</span>
                                             @endif
-                                        </td>
-                                        <td>
+                                        </td>                                        <td>
                                             <span class="text-muted">
-                                                {{ $item->dibuat_pada ? $item->dibuat_pada->format('d/m/Y') : 'N/A' }}
+                                                {{ $item->dibuat_pada ? \Carbon\Carbon::parse($item->dibuat_pada)->format('d/m/Y') : 'N/A' }}
                                             </span>
                                         </td>
                                         <td>

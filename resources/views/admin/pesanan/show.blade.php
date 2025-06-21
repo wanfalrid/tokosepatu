@@ -31,7 +31,7 @@
                 <i class="fas fa-clock me-2"></i>Status Pesanan
             </h4>
             <div class="status-timeline">
-                <div class="timeline-item {{ in_array($pesanan->status, ['pending', 'diproses', 'dikirim', 'selesai']) ? 'active' : '' }}">
+                <div class="timeline-item {{ in_array($pesanan->status_pesanan, ['menunggu', 'diproses', 'dikirim', 'selesai']) ? 'active' : '' }}">
                     <div class="timeline-marker">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
@@ -41,7 +41,7 @@
                     </div>
                 </div>
                 
-                <div class="timeline-item {{ in_array($pesanan->status, ['diproses', 'dikirim', 'selesai']) ? 'active' : '' }}">
+                <div class="timeline-item {{ in_array($pesanan->status_pesanan, ['diproses', 'dikirim', 'selesai']) ? 'active' : '' }}">
                     <div class="timeline-marker">
                         <i class="fas fa-cog"></i>
                     </div>
@@ -51,7 +51,7 @@
                     </div>
                 </div>
                 
-                <div class="timeline-item {{ in_array($pesanan->status, ['dikirim', 'selesai']) ? 'active' : '' }}">
+                <div class="timeline-item {{ in_array($pesanan->status_pesanan, ['dikirim', 'selesai']) ? 'active' : '' }}">
                     <div class="timeline-marker">
                         <i class="fas fa-truck"></i>
                     </div>
@@ -61,7 +61,7 @@
                     </div>
                 </div>
                 
-                <div class="timeline-item {{ $pesanan->status == 'selesai' ? 'active' : '' }}">
+                <div class="timeline-item {{ $pesanan->status_pesanan == 'selesai' ? 'active' : '' }}">
                     <div class="timeline-marker">
                         <i class="fas fa-check-circle"></i>
                     </div>
@@ -127,9 +127,8 @@
                         <span class="summary-value">{{ $pesanan->created_at->format('d M Y, H:i') }}</span>
                     </div>
                     <div class="summary-item">
-                        <span class="summary-label">Status:</span>
-                        <span class="status-badge status-{{ strtolower($pesanan->status) }}">
-                            {{ ucfirst($pesanan->status) }}
+                        <span class="summary-label">Status:</span>                        <span class="status-badge status-{{ strtolower($pesanan->status_pesanan) }}">
+                            {{ ucfirst($pesanan->status_pesanan) }}
                         </span>
                     </div>
                     <div class="summary-item">
@@ -153,23 +152,19 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    @if($pesanan->pembayaran)
-                        <div class="payment-details">
+                    @if($pesanan->pembayaran)                        <div class="payment-details">
                             <div class="payment-status">
-                                <span class="payment-badge payment-{{ strtolower($pesanan->pembayaran->status) }}">
-                                    {{ ucfirst($pesanan->pembayaran->status) }}
+                                <span class="payment-badge payment-{{ strtolower($pesanan->pembayaran->status_pembayaran) }}">
+                                    {{ ucfirst($pesanan->pembayaran->status_pembayaran) }}
                                 </span>
                             </div>
                             <div class="payment-info-item">
-                                <span class="payment-label">Metode:</span>
-                                <span class="payment-value">{{ $pesanan->pembayaran->metode }}</span>
-                            </div>                            <div class="payment-info-item">
                                 <span class="payment-label">Jumlah:</span>
                                 <span class="payment-value">Rp {{ number_format($pesanan->pembayaran->jumlah_bayar, 0, ',', '.') }}</span>
                             </div>
                             <div class="payment-info-item">
                                 <span class="payment-label">Tanggal:</span>
-                                <span class="payment-value">{{ $pesanan->pembayaran->created_at->format('d M Y, H:i') }}</span>
+                                <span class="payment-value">{{ $pesanan->pembayaran->tanggal_pembayaran->format('d M Y, H:i') }}</span>
                             </div>
                         </div>
                     @else
@@ -266,12 +261,11 @@
                 <div class="action-buttons">
                     <div class="status-actions">
                         <label class="form-label">Ubah Status Pesanan:</label>
-                        <select class="form-select status-select" onchange="updateOrderStatus(this.value)">
-                            <option value="pending" {{ $pesanan->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="diproses" {{ $pesanan->status == 'diproses' ? 'selected' : '' }}>Diproses</option>
-                            <option value="dikirim" {{ $pesanan->status == 'dikirim' ? 'selected' : '' }}>Dikirim</option>
-                            <option value="selesai" {{ $pesanan->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                            <option value="dibatalkan" {{ $pesanan->status == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                        <select class="form-select status-select" onchange="updateOrderStatus(this.value)">                            <option value="menunggu" {{ $pesanan->status_pesanan == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
+                            <option value="diproses" {{ $pesanan->status_pesanan == 'diproses' ? 'selected' : '' }}>Diproses</option>
+                            <option value="dikirim" {{ $pesanan->status_pesanan == 'dikirim' ? 'selected' : '' }}>Dikirim</option>
+                            <option value="selesai" {{ $pesanan->status_pesanan == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            <option value="dibatalkan" {{ $pesanan->status_pesanan == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                         </select>
                     </div>
                     
@@ -784,13 +778,13 @@
 <script>
 function updateOrderStatus(newStatus) {
     if (confirm(`Apakah Anda yakin ingin mengubah status pesanan menjadi ${newStatus}?`)) {
-        fetch(`/admin/pesanan/{{ $pesanan->id }}/status`, {
-            method: 'POST',
+        fetch(`/admin/pesanan/{{ $pesanan->id_pesanan }}/status`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({ status_pesanan: newStatus })
         })
         .then(response => response.json())
         .then(data => {

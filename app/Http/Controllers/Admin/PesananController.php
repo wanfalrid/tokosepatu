@@ -25,11 +25,9 @@ class PesananController extends Controller
                           ->firstOrFail();
         return view('admin.pesanan.show', compact('pesanan'));
     }
-    
-    public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status_pesanan' => 'required|in:pending,diproses,dikirim,selesai,dibatalkan',
+      public function updateStatus(Request $request, $id)
+    {        $request->validate([
+            'status_pesanan' => 'required|in:menunggu,diproses,dikirim,selesai,dibatalkan',
             'keterangan' => 'nullable|string|max:255'
         ]);
         
@@ -40,11 +38,10 @@ class PesananController extends Controller
         TrackingPesanan::create([
             'id_tracking' => 'TRK-' . strtoupper(Str::random(8)),
             'id_pesanan' => $id,
-            'status_tracking' => $request->status_pesanan,
-            'keterangan' => $request->keterangan ?: 'Status pesanan diperbarui',
+            'status_pengiriman' => $request->status_pesanan,
             'tanggal_update' => now()
         ]);
         
-        return redirect()->back()->with('success', 'Status pesanan berhasil diperbarui!');
+        return response()->json(['success' => true, 'message' => 'Status pesanan berhasil diperbarui!']);
     }
 }
