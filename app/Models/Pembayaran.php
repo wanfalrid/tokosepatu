@@ -15,8 +15,8 @@ class Pembayaran extends Model
     protected $fillable = [
         'id_pembayaran',
         'id_pesanan',
-        'id_pengguna',
         'jumlah',
+        'jumlah_bayar',
         'tanggal_pembayaran',
         'status_pembayaran',
         'dibuat_pada',
@@ -24,16 +24,12 @@ class Pembayaran extends Model
 
     protected $casts = [
         'jumlah' => 'decimal:2',
+        'jumlah_bayar' => 'decimal:2',
         'tanggal_pembayaran' => 'datetime',
     ];
 
     public function pesanan()
     {
         return $this->belongsTo(Pesanan::class, 'id_pesanan', 'id_pesanan');
-    }
-
-    public function pengguna()
-    {
-        return $this->belongsTo(Pengguna::class, 'id_pengguna', 'id_pengguna');
     }
 }

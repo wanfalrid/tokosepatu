@@ -15,7 +15,6 @@ class Pesanan extends Model
     protected $fillable = [
         'id_pesanan',
         'id_pelanggan',
-        'id_pengguna',
         'total_harga',
         'status_pesanan',
         'metode_pengiriman',
@@ -41,11 +40,6 @@ class Pesanan extends Model
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class, 'id_pelanggan', 'id_pelanggan');
-    }
-
-    public function pengguna()
-    {
-        return $this->belongsTo(Pengguna::class, 'id_pengguna', 'id_pengguna');
     }
 
     public function detailPesanan()

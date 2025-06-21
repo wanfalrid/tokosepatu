@@ -65,15 +65,16 @@ class CheckoutController extends Controller
                 'express' => 25000,
                 'sameday' => 50000
             ];
-            
-            // Calculate totals
+              // Calculate totals
             $subtotal = 0;
             foreach ($cart as $item) {
                 $subtotal += $item['harga'] * $item['quantity'];
             }
             
             $shipping = $shippingCosts[$request->shipping_method];
-            $total = $subtotal + $shipping;            // Create order
+            $tax = round($subtotal * 0.11); // Calculate 11% tax
+            $total = $subtotal + $shipping + $tax;
+              // Create order
             $pesanan = Pesanan::create([
                 'id_pesanan' => 'ORD-' . strtoupper(Str::random(8)),
                 'id_pelanggan' => $customer ? $customer->id_pelanggan : null,
@@ -88,16 +89,14 @@ class CheckoutController extends Controller
                 'ongkos_kirim' => $shipping,
                 'dibuat_pada' => now(),
             ]);
-            
-            // Create order details
+              // Create order details
             foreach ($cart as $item) {
                 DetailPesanan::create([
-                    'id_detail' => 'DTL-' . strtoupper(Str::random(8)),
+                    'id_detail_pesanan' => 'DTL-' . strtoupper(Str::random(8)),
                     'id_pesanan' => $pesanan->id_pesanan,
                     'id_produk' => $item['id_produk'],
                     'jumlah' => $item['quantity'],
                     'harga_satuan' => $item['harga'],
-                    'subtotal' => $item['harga'] * $item['quantity'],
                 ]);
                 
                 // Update product stock
@@ -144,13 +143,12 @@ class CheckoutController extends Controller
                     ];
                 }
                 
-                $snapToken = $midtransService->createSnapToken($orderData);
-                  // Create payment record with snap token
+                $snapToken = $midtransService->createSnapToken($orderData);                // Create payment record with snap token
                 $pembayaran = Pembayaran::create([
                     'id_pembayaran' => 'PAY-' . strtoupper(Str::random(8)),
                     'id_pesanan' => $pesanan->id_pesanan,
-                    'id_pengguna' => null, // Customer payment, not pengguna
                     'jumlah' => $total,
+                    'jumlah_bayar' => $total,
                     'tanggal_pembayaran' => now(),
                     'status_pembayaran' => 'menunggu',
                     'dibuat_pada' => now(),
@@ -170,26 +168,22 @@ class CheckoutController extends Controller
                 
                 // For non-AJAX request, redirect to payment page
                 session(['snap_token' => $snapToken, 'order_id' => $pesanan->id_pesanan]);
-                return redirect()->route('checkout.payment', $pesanan->id_pesanan);
-                  } else {
-                // COD payment
+                return redirect()->route('checkout.payment', $pesanan->id_pesanan);            } else {                // COD payment
                 $pembayaran = Pembayaran::create([
                     'id_pembayaran' => 'PAY-' . strtoupper(Str::random(8)),
                     'id_pesanan' => $pesanan->id_pesanan,
-                    'id_pengguna' => null, // Customer payment, not pengguna
                     'jumlah' => $total,
+                    'jumlah_bayar' => $total,
                     'tanggal_pembayaran' => now(),
                     'status_pembayaran' => 'menunggu',
                     'dibuat_pada' => now(),
                 ]);
             }
-            
-            // Create tracking record
+              // Create tracking record
             TrackingPesanan::create([
                 'id_tracking' => 'TRK-' . strtoupper(Str::random(8)),
                 'id_pesanan' => $pesanan->id_pesanan,
-                'status_tracking' => 'order_placed',
-                'keterangan' => 'Pesanan berhasil dibuat',
+                'status_pengiriman' => 'order_placed',
                 'tanggal_update' => now(),
             ]);
             
@@ -271,8 +265,7 @@ class CheckoutController extends Controller
                 'category' => 'Sepatu'
             ];
         }
-        
-        // Add shipping as item if not free
+          // Add shipping as item if not free
         if ($shippingCost > 0) {
             $items[] = [
                 'id' => 'SHIPPING',
@@ -283,7 +276,19 @@ class CheckoutController extends Controller
             ];
         }
         
-        $total = $subtotal + $shippingCost;
+        // Calculate tax (11%)
+        $tax = round($subtotal * 0.11);
+        
+        // Add tax as item
+        $items[] = [
+            'id' => 'TAX',
+            'price' => $tax,
+            'quantity' => 1,
+            'name' => 'Pajak (11%)',
+            'category' => 'Tax'
+        ];
+        
+        $total = $subtotal + $shippingCost + $tax;
         
         // Generate order ID
         $orderId = 'ORD-' . strtoupper(Str::random(8)) . '-' . time();
@@ -363,16 +368,14 @@ class CheckoutController extends Controller
                 'email_penerima' => $pendingOrder['customer_data']['email'],
                 'ongkos_kirim' => $pendingOrder['shipping_cost'],
             ]);
-            
-            // Create order details
+              // Create order details
             foreach ($pendingOrder['cart'] as $item) {
                 DetailPesanan::create([
-                    'id_detail' => 'DTL-' . strtoupper(Str::random(8)),
+                    'id_detail_pesanan' => 'DTL-' . strtoupper(Str::random(8)),
                     'id_pesanan' => $pesanan->id_pesanan,
                     'id_produk' => $item['id_produk'],
                     'jumlah' => $item['quantity'],
                     'harga_satuan' => $item['harga'],
-                    'subtotal' => $item['harga'] * $item['quantity'],
                 ]);
                 
                 // Update product stock
@@ -381,24 +384,21 @@ class CheckoutController extends Controller
                     $produk->stok -= $item['quantity'];
                     $produk->save();
                 }
-            }
-              // Create payment record
+            }            // Create payment record
             $pembayaran = Pembayaran::create([
                 'id_pembayaran' => 'PAY-' . strtoupper(Str::random(8)),
                 'id_pesanan' => $pesanan->id_pesanan,
-                'id_pengguna' => null, // Set to null since customer pays, not pengguna
                 'jumlah' => $pendingOrder['total'],
+                'jumlah_bayar' => $pendingOrder['total'],
                 'status_pembayaran' => $statusCode == '200' ? 'dibayar' : 'menunggu', // Use correct enum values
                 'tanggal_pembayaran' => $statusCode == '200' ? now() : now(), // Always set payment date
                 'dibuat_pada' => now(),
             ]);
-            
-            // Create tracking record
+              // Create tracking record
             TrackingPesanan::create([
                 'id_tracking' => 'TRK-' . strtoupper(Str::random(8)),
                 'id_pesanan' => $pesanan->id_pesanan,
-                'status_tracking' => $statusCode == '200' ? 'payment_confirmed' : 'order_placed',
-                'keterangan' => $statusCode == '200' ? 'Pembayaran berhasil dikonfirmasi' : 'Pesanan dibuat, menunggu pembayaran',
+                'status_pengiriman' => $statusCode == '200' ? 'payment_confirmed' : 'order_placed',
                 'tanggal_update' => now(),
             ]);
             

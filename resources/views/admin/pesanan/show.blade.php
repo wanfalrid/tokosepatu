@@ -163,10 +163,9 @@
                             <div class="payment-info-item">
                                 <span class="payment-label">Metode:</span>
                                 <span class="payment-value">{{ $pesanan->pembayaran->metode }}</span>
-                            </div>
-                            <div class="payment-info-item">
+                            </div>                            <div class="payment-info-item">
                                 <span class="payment-label">Jumlah:</span>
-                                <span class="payment-value">Rp {{ number_format($pesanan->pembayaran->jumlah, 0, ',', '.') }}</span>
+                                <span class="payment-value">Rp {{ number_format($pesanan->pembayaran->jumlah_bayar, 0, ',', '.') }}</span>
                             </div>
                             <div class="payment-info-item">
                                 <span class="payment-label">Tanggal:</span>

@@ -291,8 +291,7 @@
                                     @endif
                                 </div>
 
-                                @if(!empty($cart))
-                                <!-- Order Calculation -->
+                                @if(!empty($cart))                                <!-- Order Calculation -->
                                 <div class="order-calculation">
                                     <div class="calculation-row">
                                         <span class="calc-label">Subtotal:</span>
@@ -302,9 +301,13 @@
                                         <span class="calc-label">Ongkos Kirim:</span>
                                         <span class="calc-value" id="shipping-cost">Gratis</span>
                                     </div>
+                                    <div class="calculation-row">
+                                        <span class="calc-label">Pajak (11%):</span>
+                                        <span class="calc-value" id="tax-amount">Rp {{ number_format($subtotal * 0.11, 0, ',', '.') }}</span>
+                                    </div>
                                     <div class="calculation-row total-row">
                                         <span class="calc-label">Total:</span>
-                                        <span class="calc-value total-amount" id="total-amount">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                                        <span class="calc-value total-amount" id="total-amount">Rp {{ number_format($subtotal + ($subtotal * 0.11), 0, ',', '.') }}</span>
                                     </div>
                                 </div>
 
@@ -839,7 +842,12 @@ function updateTotal() {
     const shippingCost = shippingCosts[selectedShipping];
     const subtotalText = document.getElementById('subtotal').textContent;
     const subtotal = parseInt(subtotalText.replace(/[^0-9]/g, ''));
-    const total = subtotal + shippingCost;
+    
+    // Calculate tax (11%)
+    const tax = Math.round(subtotal * 0.11);
+    
+    // Calculate total = subtotal + shipping + tax
+    const total = subtotal + shippingCost + tax;
     
     // Update shipping cost display
     const shippingCostElement = document.getElementById('shipping-cost');
@@ -848,6 +856,9 @@ function updateTotal() {
     } else {
         shippingCostElement.textContent = 'Rp ' + shippingCost.toLocaleString('id-ID');
     }
+    
+    // Update tax display
+    document.getElementById('tax-amount').textContent = 'Rp ' + tax.toLocaleString('id-ID');
     
     // Update total
     document.getElementById('total-amount').textContent = 'Rp ' + total.toLocaleString('id-ID');
