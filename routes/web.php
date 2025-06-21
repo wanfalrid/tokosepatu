@@ -62,6 +62,10 @@ Route::prefix('auth')->name('auth.')->group(function () {
         Route::get('profile', [CustomerAuthController::class, 'profile'])->name('profile');
         Route::put('profile', [CustomerAuthController::class, 'updateProfile'])->name('profile.update');
         
+        // Profile photo management
+        Route::post('profile/photo', [CustomerAuthController::class, 'uploadPhoto'])->name('profile.photo.upload');
+        Route::delete('profile/photo', [CustomerAuthController::class, 'deletePhoto'])->name('profile.photo.delete');
+        
         // Customer order history
         Route::get('orders', [CustomerAuthController::class, 'orders'])->name('orders');
         Route::get('orders/{id}', [CustomerAuthController::class, 'orderDetail'])->name('orders.detail');

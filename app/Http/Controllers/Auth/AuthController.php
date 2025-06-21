@@ -165,9 +165,79 @@ class AuthController extends Controller
         session()->put([
             'customer_name' => $request->nama,
             'customer_email' => $request->email,
+        ]);        return back()->with('success', 'Profil berhasil diperbarui!');
+    }
+    
+    /**
+     * Upload profile photo
+     */
+    public function uploadPhoto(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        return back()->with('success', 'Profil berhasil diperbarui!');
+        $customer = Auth::guard('customer')->user();
+        
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($customer->foto && file_exists(public_path('storage/avatars/' . $customer->foto))) {
+                unlink(public_path('storage/avatars/' . $customer->foto));
+            }
+            
+            // Generate unique filename
+            $fileName = time() . '_' . $customer->id_pelanggan . '.' . $request->photo->extension();
+            
+            // Create avatars directory if not exists
+            if (!file_exists(public_path('storage/avatars'))) {
+                mkdir(public_path('storage/avatars'), 0755, true);
+            }
+            
+            // Move uploaded file
+            $request->photo->move(public_path('storage/avatars'), $fileName);
+            
+            // Update database
+            Pelanggan::where('id_pelanggan', $customer->id_pelanggan)->update(['foto' => $fileName]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto profil berhasil diupload!',
+                'photo_url' => asset('storage/avatars/' . $fileName)
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal mengupload foto profil.'
+        ], 400);
+    }
+    
+    /**
+     * Delete profile photo
+     */
+    public function deletePhoto()
+    {
+        $customer = Auth::guard('customer')->user();
+        
+        if ($customer->foto) {
+            // Delete physical file
+            if (file_exists(public_path('storage/avatars/' . $customer->foto))) {
+                unlink(public_path('storage/avatars/' . $customer->foto));
+            }
+            
+            // Update database
+            Pelanggan::where('id_pelanggan', $customer->id_pelanggan)->update(['foto' => null]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto profil berhasil dihapus!'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Tidak ada foto profil untuk dihapus.'
+        ], 400);
     }
     
     /**
