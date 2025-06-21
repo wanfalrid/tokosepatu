@@ -551,9 +551,8 @@
                         <span class="nav-text">Pelanggan</span>
                     </a>
                 </div>
-                
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
+                  <div class="nav-item">
+                    <a href="{{ route('admin.laporan.index') }}" class="nav-link {{ request()->routeIs('admin.laporan.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <span class="nav-text">Laporan</span>
                     </a>

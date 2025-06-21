@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProdukController as AdminProdukController;
 use App\Http\Controllers\Admin\PesananController;
 use App\Http\Controllers\Admin\PelangganController;
+use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Auth\AuthController as CustomerAuthController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -97,6 +98,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('pelanggan/{id}/toggle-status', [PelangganController::class, 'toggleStatus'])->name('pelanggan.toggleStatus');
         Route::post('pelanggan/bulk-action', [PelangganController::class, 'bulkAction'])->name('pelanggan.bulkAction');
         Route::get('pelanggan/export', [PelangganController::class, 'export'])->name('pelanggan.export');
+        
+        // Reports
+        Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('laporan/export-sales', [LaporanController::class, 'exportSales'])->name('laporan.exportSales');
         
         // Order management
         Route::get('pesanan', [PesananController::class, 'index'])->name('pesanan.index');

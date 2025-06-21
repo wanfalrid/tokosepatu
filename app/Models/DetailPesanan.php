@@ -18,11 +18,13 @@ class DetailPesanan extends Model
         'id_produk',
         'jumlah',
         'harga_satuan',
+        'subtotal',
     ];
 
     protected $casts = [
         'jumlah' => 'integer',
         'harga_satuan' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function pesanan()
