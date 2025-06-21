@@ -26,10 +26,16 @@
                                 <span class="bg-green-500/20 text-green-100 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
                                     <i class="fas fa-check-circle mr-1"></i>
                                     {{ ucfirst($customer->status_akun) }}
-                                </span>
-                                <span class="text-blue-100 text-sm">
+                                </span>                                <span class="text-blue-100 text-sm">
                                     <i class="fas fa-calendar mr-1"></i>
-                                    Bergabung sejak {{ $customer->created_at->format('M Y') }}
+                                    Bergabung sejak 
+                                    @if($customer->dibuat_pada)
+                                        {{ \Carbon\Carbon::parse($customer->dibuat_pada)->format('M Y') }}
+                                    @elseif($customer->created_at)
+                                        {{ $customer->created_at->format('M Y') }}
+                                    @else
+                                        N/A
+                                    @endif
                                 </span>
                             </div>
                         </div>

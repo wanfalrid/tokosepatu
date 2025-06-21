@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pelanggan', function (Blueprint $table) {
-            //
+            $table->string('foto', 255)->nullable()->after('status_akun');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pelanggan', function (Blueprint $table) {
-            //
+            $table->dropColumn('foto');
         });
     }
 };

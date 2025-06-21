@@ -21,6 +21,11 @@ Route::get('/login', function() {
     return redirect()->route('auth.login');
 })->name('login');
 
+// Add POST route for login to handle form submissions
+Route::post('/login', function() {
+    return redirect()->route('auth.login');
+});
+
 // Produk routes
 Route::get('/produk/{id}', [ProdukController::class, 'show'])->name('produk.detail');
 Route::get('/search', [ProdukController::class, 'search'])->name('produk.search');

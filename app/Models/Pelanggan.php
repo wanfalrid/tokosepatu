@@ -25,6 +25,8 @@ class Pelanggan extends Authenticatable
         'tanggal_lahir',
         'kata_sandi',
         'status_akun',
+        'foto',
+        'dibuat_pada',
     ];
 
     protected $hidden = [
@@ -33,7 +35,14 @@ class Pelanggan extends Authenticatable
 
     protected $casts = [
         'tanggal_lahir' => 'date',
+        'dibuat_pada' => 'datetime',
     ];
+
+    // Define custom created_at accessor
+    public function getCreatedAtAttribute()
+    {
+        return $this->dibuat_pada;
+    }
 
     public function getAuthPassword()
     {
@@ -43,5 +52,42 @@ class Pelanggan extends Authenticatable
     public function pesanan()
     {
         return $this->hasMany(Pesanan::class, 'id_pelanggan', 'id_pelanggan');
+    }
+
+    /**
+     * Check if the customer has a profile photo
+     */
+    public function hasFoto()
+    {
+        return !empty($this->foto) && file_exists(public_path('storage/foto/pelanggan/' . $this->foto));
+    }
+
+    /**
+     * Get the full URL for the customer's profile photo
+     */
+    public function getFotoUrl()
+    {
+        if ($this->hasFoto()) {
+            return asset('storage/foto/pelanggan/' . $this->foto);
+        }
+        
+        // Return default avatar if no photo
+        return asset('images/default-avatar.png');
+    }
+
+    /**
+     * Get the customer's display name
+     */
+    public function getDisplayName()
+    {
+        return $this->nama;
+    }
+
+    /**
+     * Get the customer's avatar (alias for getFotoUrl)
+     */
+    public function getAvatar()
+    {
+        return $this->getFotoUrl();
     }
 }

@@ -101,7 +101,7 @@
         .sidebar-toggle {
             position: absolute;
             top: 50%;
-            right: -15px;
+            right: 15px;
             transform: translateY(-50%);
             background: var(--primary-color);
             border: 3px solid white;
