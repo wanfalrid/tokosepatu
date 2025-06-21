@@ -71,9 +71,7 @@
                 </div>
             </div>
         </div>
-        @endif
-
-        <form id="checkoutForm" action="{{ route('checkout.process') }}" method="POST">
+        @endif        <form id="checkoutForm" action="{{ route('checkout.store') }}" method="POST">
             @csrf
             <div class="row g-4">
                 <!-- Customer Information -->
@@ -213,30 +211,15 @@
                                 <h3 class="section-title">
                                     <i class="fas fa-credit-card me-2"></i>Metode Pembayaran
                                 </h3>
-                            </div>
-                            <div class="section-body">
-                                <div class="payment-options">
-                                    <div class="payment-option">
-                                        <input type="radio" class="form-check-input" id="transfer" name="payment_method" value="transfer" checked>
-                                        <label class="payment-label" for="transfer">
+                            </div>                            <div class="section-body">                                <div class="payment-options">                                    <div class="payment-option">
+                                        <input type="radio" class="form-check-input" id="midtrans" name="payment_method" value="midtrans" checked>
+                                        <label class="payment-label" for="midtrans">
                                             <div class="payment-icon">
-                                                <i class="fas fa-university"></i>
+                                                <i class="fas fa-credit-card"></i>
                                             </div>
                                             <div class="payment-info">
-                                                <h5>Transfer Bank</h5>
-                                                <p>BCA, Mandiri, BNI, BRI</p>
-                                            </div>
-                                        </label>
-                                    </div>
-                                    <div class="payment-option">
-                                        <input type="radio" class="form-check-input" id="ewallet" name="payment_method" value="ewallet">
-                                        <label class="payment-label" for="ewallet">
-                                            <div class="payment-icon">
-                                                <i class="fas fa-mobile-alt"></i>
-                                            </div>
-                                            <div class="payment-info">
-                                                <h5>E-Wallet</h5>
-                                                <p>GoPay, OVO, DANA, LinkAja</p>
+                                                <h5>Pembayaran Online</h5>
+                                                <p>Credit Card, Bank Transfer, E-Wallet</p>
                                             </div>
                                         </label>
                                     </div>
@@ -251,8 +234,7 @@
                                                 <p>Bayar saat barang tiba</p>
                                             </div>
                                         </label>
-                                    </div>
-                                </div>
+                                    </div>                                </div>
                             </div>
                         </div>
                     </div>
@@ -279,32 +261,30 @@
                                         <div class="empty-cart">
                                             <i class="fas fa-shopping-cart"></i>
                                             <p>Keranjang kosong</p>
-                                        </div>
-                                    @else
+                                        </div>                                    @else
                                         @foreach($cart as $id => $item)
-                                            @php $subtotal += $item['price'] * $item['quantity']; @endphp
+                                            @php $subtotal += $item['harga'] * $item['quantity']; @endphp
                                             <div class="cart-item">
                                                 <div class="item-image">
-                                                    @if($item['image'])
-                                                        <img src="{{ asset('storage/' . $item['image']) }}" alt="{{ $item['name'] }}">
+                                                    @if($item['gambar'])
+                                                        <img src="{{ asset('storage/' . $item['gambar']) }}" alt="{{ $item['nama_produk'] }}">
                                                     @else
                                                         <div class="no-image">
                                                             <i class="fas fa-image"></i>
                                                         </div>
                                                     @endif
-                                                </div>
-                                                <div class="item-details">
-                                                    <h6 class="item-name">{{ $item['name'] }}</h6>
+                                                </div>                                                <div class="item-details">
+                                                    <h6 class="item-name">{{ $item['nama_produk'] }}</h6>
                                                     <div class="item-meta">
-                                                        <span class="item-brand">{{ $item['brand'] ?? '' }}</span>
+                                                        <span class="item-brand">{{ $item['merek'] ?? '' }}</span>
                                                         <span class="item-quantity">x{{ $item['quantity'] }}</span>
                                                     </div>
                                                     <div class="item-price">
-                                                        Rp {{ number_format($item['price'], 0, ',', '.') }}
+                                                        Rp {{ number_format($item['harga'], 0, ',', '.') }}
                                                     </div>
                                                 </div>
                                                 <div class="item-total">
-                                                    Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}
+                                                    Rp {{ number_format($item['harga'] * $item['quantity'], 0, ',', '.') }}
                                                 </div>
                                             </div>
                                         @endforeach
@@ -819,6 +799,12 @@
     }
 }
 </style>
+@endsection
+
+@push('scripts')
+<!-- Midtrans Snap JS -->
+<script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" 
+        data-client-key="{{ config('midtrans.clientKey') }}"></script>
 
 <script>
 // Shipping cost calculation
@@ -832,6 +818,19 @@ const shippingCosts = {
 document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
     radio.addEventListener('change', function() {
         updateTotal();
+    });
+});
+
+// Payment method change handler
+document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const placeOrderBtn = document.getElementById('placeOrderBtn');
+        
+        if (this.value === 'midtrans') {
+            placeOrderBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Konfirmasi Pembelian';
+        } else {
+            placeOrderBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Buat Pesanan';
+        }
     });
 });
 
@@ -854,14 +853,151 @@ function updateTotal() {
     document.getElementById('total-amount').textContent = 'Rp ' + total.toLocaleString('id-ID');
 }
 
-// Form submission
-document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+function createSnapTokenAndRedirect() {
+    // Validate form first
+    const form = document.getElementById('checkoutForm');
+    const formData = new FormData(form);
+    
+    // Check required fields
+    const requiredFields = ['nama_lengkap', 'email', 'telepon', 'alamat'];
+    let hasError = false;
+    
+    requiredFields.forEach(field => {
+        const input = form.querySelector(`[name="${field}"]`);
+        if (!input.value.trim()) {
+            input.classList.add('is-invalid');
+            hasError = true;
+        } else {
+            input.classList.remove('is-invalid');
+        }
+    });
+    
+    if (hasError) {
+        alert('Mohon lengkapi semua field yang diperlukan terlebih dahulu.');
+        return;
+    }
+    
+    // Show loading on button
     const placeOrderBtn = document.getElementById('placeOrderBtn');
     placeOrderBtn.classList.add('loading');
+    placeOrderBtn.disabled = true;
     
-    // Disable all form inputs
-    const inputs = this.querySelectorAll('input, select, textarea, button');
-    inputs.forEach(input => input.disabled = true);
+    // Create snap token
+    fetch('{{ route("checkout.create-snap-token") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.snap_token) {
+            // Redirect to Midtrans payment page
+            window.snap.pay(data.snap_token, {
+                onSuccess: function(result) {
+                    console.log('Payment success:', result);
+                    handlePaymentResult(result, 'success');
+                },
+                onPending: function(result) {
+                    console.log('Payment pending:', result);
+                    handlePaymentResult(result, 'pending');
+                },
+                onError: function(result) {
+                    console.log('Payment error:', result);
+                    alert('Pembayaran gagal! Silakan coba lagi.');
+                    // Reset button state
+                    placeOrderBtn.classList.remove('loading');
+                    placeOrderBtn.disabled = false;
+                },
+                onClose: function() {
+                    console.log('Payment popup closed');
+                    // Reset button state when user closes payment window
+                    placeOrderBtn.classList.remove('loading');
+                    placeOrderBtn.disabled = false;
+                }
+            });
+        } else {
+            throw new Error(data.error || 'Gagal membuat token pembayaran');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error: ' + error.message + '\nSilakan periksa data Anda dan coba lagi.');
+        // Reset button state
+        placeOrderBtn.classList.remove('loading');
+        placeOrderBtn.disabled = false;
+    });
+}
+
+function hidePaymentSection() {
+    // Function kept for compatibility but not needed anymore
+    console.log('hidePaymentSection called - not needed in redirect mode');
+}
+
+function handlePaymentResult(result, status) {
+    // Send payment result to server
+    fetch('{{ route("checkout.payment-callback") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            order_id: result.order_id,
+            transaction_status: result.transaction_status,
+            status_code: result.status_code,
+            gross_amount: result.gross_amount,
+            signature_key: result.signature_key,
+            payment_type: result.payment_type,
+            transaction_id: result.transaction_id,
+            fraud_status: result.fraud_status
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            if (status === 'success') {
+                alert('Pembayaran berhasil! Terima kasih atas pesanan Anda.');
+            } else {
+                alert('Pembayaran sedang diproses. Kami akan mengirim konfirmasi via email.');
+            }
+            
+            // Redirect to success page
+            window.location.href = '{{ url("checkout/success") }}/' + data.order_id;
+        } else {
+            throw new Error(data.error || 'Gagal memproses pembayaran');
+        }
+    })
+    .catch(error => {
+        console.error('Error processing payment:', error);
+        alert('Terjadi kesalahan saat memproses pembayaran: ' + error.message);
+    });
+}
+
+// Form submission handler
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Always prevent default submission
+    
+    const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    
+    if (selectedPaymentMethod === 'cod') {
+        // COD: Submit form normally
+        placeOrderBtn.classList.add('loading');
+        
+        // Disable all form inputs
+        const inputs = this.querySelectorAll('input, select, textarea, button');
+        inputs.forEach(input => input.disabled = true);
+        
+        // Submit form
+        this.submit();
+    } else if (selectedPaymentMethod === 'midtrans') {
+        // Midtrans: Create snap token and redirect to payment page
+        createSnapTokenAndRedirect();
+    }
 });
 
 // Real-time form validation
@@ -873,6 +1009,13 @@ document.querySelectorAll('.form-control').forEach(input => {
         } else {
             this.classList.remove('is-valid');
             this.classList.add('is-invalid');
+        }
+    });    // No need to re-create snap token on field changes in redirect mode
+    input.addEventListener('change', function() {
+        // Just validate the field
+        if (this.checkValidity()) {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
         }
     });
 });
@@ -888,9 +1031,19 @@ document.getElementById('telepon').addEventListener('input', function(e) {
     e.target.value = value;
 });
 
-// Initialize total calculation
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
     updateTotal();
+    
+    // Set initial button text based on selected payment method
+    const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    
+    if (selectedPaymentMethod === 'midtrans') {
+        placeOrderBtn.innerHTML = '<i class="fas fa-credit-card me-2"></i>Konfirmasi Pembelian';
+    } else {
+        placeOrderBtn.innerHTML = '<i class="fas fa-lock me-2"></i>Buat Pesanan';
+    }
 });
 </script>
-@endsection
+@endpush

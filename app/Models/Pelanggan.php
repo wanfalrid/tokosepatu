@@ -59,7 +59,7 @@ class Pelanggan extends Authenticatable
      */
     public function hasFoto()
     {
-        return !empty($this->foto) && file_exists(public_path('storage/foto/pelanggan/' . $this->foto));
+        return !empty($this->foto) && file_exists(public_path('storage/avatars/' . $this->foto));
     }
 
     /**
@@ -68,11 +68,18 @@ class Pelanggan extends Authenticatable
     public function getFotoUrl()
     {
         if ($this->hasFoto()) {
-            return asset('storage/foto/pelanggan/' . $this->foto);
+            return asset('storage/avatars/' . $this->foto);
         }
         
-        // Return default avatar if no photo
-        return asset('images/default-avatar.png');
+        return null;
+    }
+
+    /**
+     * Get foto_url attribute accessor
+     */
+    public function getFotoUrlAttribute()
+    {
+        return $this->getFotoUrl();
     }
 
     /**

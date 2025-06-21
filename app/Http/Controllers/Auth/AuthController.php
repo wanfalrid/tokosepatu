@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class AuthController extends Controller
 {    public function showLogin()
@@ -132,14 +133,14 @@ class AuthController extends Controller
     }    public function updateProfile(Request $request)
     {
         $customer = Auth::guard('customer')->user();
-        
-        $validator = Validator::make($request->all(), [
+          $validator = Validator::make($request->all(), [
             'nama' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:pelanggan,email,' . $customer->id_pelanggan . ',id_pelanggan',
             'telepon' => 'required|string|max:20',
             'alamat' => 'required|string|max:500',
             'tanggal_lahir' => 'required|date|before:today',
             'password' => 'nullable|string|min:6|confirmed',
+            'foto_base64' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -158,6 +159,38 @@ class AuthController extends Controller
             $updateData['kata_sandi'] = Hash::make($request->password);
         }
 
+        // Handle base64 photo upload
+        if ($request->foto_base64) {
+            try {
+                // Remove data:image/jpeg;base64, prefix
+                $base64Data = preg_replace('#^data:image/\w+;base64,#i', '', $request->foto_base64);
+                $imageData = base64_decode($base64Data);
+                
+                if ($imageData !== false) {
+                    // Delete old photo if exists
+                    if ($customer->foto && file_exists(public_path('storage/avatars/' . $customer->foto))) {
+                        unlink(public_path('storage/avatars/' . $customer->foto));
+                    }
+                    
+                    // Generate unique filename
+                    $fileName = time() . '_' . $customer->id_pelanggan . '.jpg';
+                    
+                    // Create avatars directory if not exists
+                    if (!file_exists(public_path('storage/avatars'))) {
+                        mkdir(public_path('storage/avatars'), 0755, true);
+                    }
+                    
+                    // Save the image
+                    file_put_contents(public_path('storage/avatars/' . $fileName), $imageData);
+                    
+                    // Add photo to update data
+                    $updateData['foto'] = $fileName;
+                }
+            } catch (Exception $e) {
+                return back()->with('error', 'Gagal mengupload foto profil.');
+            }
+        }
+
         // Use query builder to update the record
         Pelanggan::where('id_pelanggan', $customer->id_pelanggan)->update($updateData);
         
@@ -165,7 +198,7 @@ class AuthController extends Controller
         session()->put([
             'customer_name' => $request->nama,
             'customer_email' => $request->email,
-        ]);        return back()->with('success', 'Profil berhasil diperbarui!');
+        ]);return back()->with('success', 'Profil berhasil diperbarui!');
     }
     
     /**

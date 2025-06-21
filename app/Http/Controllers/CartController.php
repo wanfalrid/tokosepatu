@@ -32,6 +32,7 @@ class CartController extends Controller
                 'nama_produk' => $produk->nama_produk,
                 'harga' => $produk->harga,
                 'gambar' => $produk->gambar,
+                'merek' => $produk->merek,
                 'quantity' => 1
             ];
         }
