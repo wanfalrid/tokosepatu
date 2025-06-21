@@ -18,14 +18,20 @@ class DetailPesanan extends Model
         'id_produk',
         'jumlah',
         'harga_satuan',
-        'subtotal',
     ];
 
     protected $casts = [
         'jumlah' => 'integer',
         'harga_satuan' => 'decimal:2',
-        'subtotal' => 'decimal:2',
     ];
+
+    /**
+     * Get the subtotal attribute (calculated)
+     */
+    public function getSubtotalAttribute()
+    {
+        return $this->jumlah * $this->harga_satuan;
+    }
 
     public function pesanan()
     {

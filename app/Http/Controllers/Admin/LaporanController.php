@@ -80,8 +80,7 @@ class LaporanController extends Controller
             'payment_breakdown' => $paymentBreakdown
         ];
     }
-    
-    private function getProductReport($start, $end)
+      private function getProductReport($start, $end)
     {
         // Top selling products
         $topProducts = DB::table('detail_pesanan')
@@ -92,7 +91,7 @@ class LaporanController extends Controller
             ->select(
                 'produk.nama_produk',
                 DB::raw('SUM(detail_pesanan.jumlah) as total_terjual'),
-                DB::raw('SUM(detail_pesanan.subtotal) as total_pendapatan')
+                DB::raw('SUM(detail_pesanan.jumlah * detail_pesanan.harga_satuan) as total_pendapatan')
             )
             ->orderBy('total_terjual', 'desc')
             ->limit(10)
