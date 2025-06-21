@@ -73,21 +73,19 @@ class CheckoutController extends Controller
             }
             
             $shipping = $shippingCosts[$request->shipping_method];
-            $total = $subtotal + $shipping;
-            
-            // Create order
+            $total = $subtotal + $shipping;            // Create order
             $pesanan = Pesanan::create([
                 'id_pesanan' => 'ORD-' . strtoupper(Str::random(8)),
                 'id_pelanggan' => $customer ? $customer->id_pelanggan : null,
                 'tanggal_pesanan' => now(),
-                'status_pesanan' => 'pending',
+                'status_pesanan' => 'menunggu', // Use correct enum value
+                'metode_pengiriman' => $request->shipping_method,
                 'total_harga' => $total,
-                'payment_method' => $request->payment_method,
-                'payment_status' => 'pending',
                 'alamat_pengiriman' => $request->alamat,
                 'nama_penerima' => $request->nama_lengkap,
                 'telepon_penerima' => $request->telepon,
                 'email_penerima' => $request->email,
+                'ongkos_kirim' => $shipping,
                 'dibuat_pada' => now(),
             ]);
             
@@ -147,20 +145,14 @@ class CheckoutController extends Controller
                 }
                 
                 $snapToken = $midtransService->createSnapToken($orderData);
-                
-                // Create payment record with snap token
+                  // Create payment record with snap token
                 $pembayaran = Pembayaran::create([
                     'id_pembayaran' => 'PAY-' . strtoupper(Str::random(8)),
                     'id_pesanan' => $pesanan->id_pesanan,
-                    'id_pengguna' => $customer ? $customer->id_pelanggan : null,
-                    'jumlah_bayar' => $total,
+                    'id_pengguna' => null, // Customer payment, not pengguna
+                    'jumlah' => $total,
                     'tanggal_pembayaran' => now(),
-                    'status_pembayaran' => 'pending',
-                    'snap_token' => $snapToken,
-                    'midtrans_order_id' => $pesanan->id_pesanan,
-                    'payment_type' => $request->payment_method,
-                    'transaction_status' => 'pending',
-                    'payment_expired_at' => now()->addHour(),
+                    'status_pembayaran' => 'menunggu',
                     'dibuat_pada' => now(),
                 ]);
                 
@@ -179,17 +171,15 @@ class CheckoutController extends Controller
                 // For non-AJAX request, redirect to payment page
                 session(['snap_token' => $snapToken, 'order_id' => $pesanan->id_pesanan]);
                 return redirect()->route('checkout.payment', $pesanan->id_pesanan);
-                
-            } else {
+                  } else {
                 // COD payment
                 $pembayaran = Pembayaran::create([
                     'id_pembayaran' => 'PAY-' . strtoupper(Str::random(8)),
                     'id_pesanan' => $pesanan->id_pesanan,
-                    'id_pengguna' => $customer ? $customer->id_pelanggan : null,
-                    'jumlah_bayar' => $total,
-                    'status_pembayaran' => 'pending',
-                    'payment_type' => 'cod',
-                    'transaction_status' => 'pending',
+                    'id_pengguna' => null, // Customer payment, not pengguna
+                    'jumlah' => $total,
+                    'tanggal_pembayaran' => now(),
+                    'status_pembayaran' => 'menunggu',
                     'dibuat_pada' => now(),
                 ]);
             }
@@ -359,20 +349,18 @@ class CheckoutController extends Controller
         DB::beginTransaction();
         
         try {
-            $customer = Auth::guard('customer')->user();
-            
-            // Create order
+            $customer = Auth::guard('customer')->user();            // Create order
             $pesanan = Pesanan::create([
                 'id_pesanan' => $orderId,
                 'id_pelanggan' => $customer ? $customer->id_pelanggan : null,
                 'tanggal_pesanan' => now(),
-                'status_pesanan' => $statusCode == '200' ? 'paid' : 'pending',
+                'status_pesanan' => $statusCode == '200' ? 'diproses' : 'menunggu', // Use correct enum values
+                'metode_pengiriman' => $pendingOrder['shipping_method'],
                 'total_harga' => $pendingOrder['total'],
                 'alamat_pengiriman' => $pendingOrder['customer_data']['alamat'],
                 'nama_penerima' => $pendingOrder['customer_data']['nama_lengkap'],
                 'telepon_penerima' => $pendingOrder['customer_data']['telepon'],
                 'email_penerima' => $pendingOrder['customer_data']['email'],
-                'metode_pengiriman' => $pendingOrder['shipping_method'],
                 'ongkos_kirim' => $pendingOrder['shipping_cost'],
             ]);
             
@@ -394,16 +382,15 @@ class CheckoutController extends Controller
                     $produk->save();
                 }
             }
-            
-            // Create payment record
+              // Create payment record
             $pembayaran = Pembayaran::create([
                 'id_pembayaran' => 'PAY-' . strtoupper(Str::random(8)),
                 'id_pesanan' => $pesanan->id_pesanan,
-                'metode_pembayaran' => 'midtrans',
-                'jumlah_bayar' => $pendingOrder['total'],
-                'status_pembayaran' => $statusCode == '200' ? 'paid' : 'pending',
-                'tanggal_pembayaran' => $statusCode == '200' ? now() : null,
-                'transaction_id' => $orderId,
+                'id_pengguna' => null, // Set to null since customer pays, not pengguna
+                'jumlah' => $pendingOrder['total'],
+                'status_pembayaran' => $statusCode == '200' ? 'dibayar' : 'menunggu', // Use correct enum values
+                'tanggal_pembayaran' => $statusCode == '200' ? now() : now(), // Always set payment date
+                'dibuat_pada' => now(),
             ]);
             
             // Create tracking record

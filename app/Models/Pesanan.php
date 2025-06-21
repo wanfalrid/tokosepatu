@@ -18,15 +18,24 @@ class Pesanan extends Model
         'id_pengguna',
         'total_harga',
         'status_pesanan',
+        'metode_pengiriman',
         'tanggal_pesanan',
         'estimasi_selesai',
         'nomor_resi',
+        'ongkos_kirim',
+        'alamat_pengiriman',
+        'nama_penerima',
+        'telepon_penerima',
+        'email_penerima',
+        'dibuat_pada',
     ];
 
     protected $casts = [
         'total_harga' => 'decimal:2',
+        'ongkos_kirim' => 'decimal:2',
         'tanggal_pesanan' => 'date',
         'estimasi_selesai' => 'datetime',
+        'dibuat_pada' => 'datetime',
     ];
 
     public function pelanggan()
