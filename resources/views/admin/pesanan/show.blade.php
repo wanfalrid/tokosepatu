@@ -7,9 +7,8 @@
     <!-- Header Section -->
     <div class="page-header" data-aos="fade-down">
         <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="page-title">
-                    <i class="fas fa-receipt me-3"></i>Detail Pesanan #{{ $pesanan->id }}
+            <div>                <h1 class="page-title">
+                    <i class="fas fa-receipt me-3"></i>Detail Pesanan #{{ $pesanan->id_pesanan }}
                 </h1>
                 <p class="page-subtitle">Informasi lengkap pesanan pelanggan</p>
             </div>
@@ -34,10 +33,9 @@
                 <div class="timeline-item {{ in_array($pesanan->status_pesanan, ['menunggu', 'diproses', 'dikirim', 'selesai']) ? 'active' : '' }}">
                     <div class="timeline-marker">
                         <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="timeline-content">
+                    </div>                    <div class="timeline-content">
                         <h6>Pesanan Dibuat</h6>
-                        <p>{{ $pesanan->created_at->format('d M Y, H:i') }}</p>
+                        <p>{{ $pesanan->dibuat_pada instanceof \Illuminate\Support\Carbon ? $pesanan->dibuat_pada->format('d M Y, H:i') : ($pesanan->dibuat_pada ? date('d M Y, H:i', strtotime($pesanan->dibuat_pada)) : 'N/A') }}</p>
                     </div>
                 </div>
                 
@@ -117,14 +115,12 @@
                         <i class="fas fa-file-invoice me-2"></i>Ringkasan Pesanan
                     </h5>
                 </div>
-                <div class="card-body">
-                    <div class="summary-item">
+                <div class="card-body">                    <div class="summary-item">
                         <span class="summary-label">ID Pesanan:</span>
-                        <span class="summary-value">#{{ $pesanan->id }}</span>
-                    </div>
-                    <div class="summary-item">
+                        <span class="summary-value">#{{ $pesanan->id_pesanan }}</span>
+                    </div><div class="summary-item">
                         <span class="summary-label">Tanggal Pesanan:</span>
-                        <span class="summary-value">{{ $pesanan->created_at->format('d M Y, H:i') }}</span>
+                        <span class="summary-value">{{ $pesanan->dibuat_pada instanceof \Illuminate\Support\Carbon ? $pesanan->dibuat_pada->format('d M Y, H:i') : ($pesanan->dibuat_pada ? date('d M Y, H:i', strtotime($pesanan->dibuat_pada)) : 'N/A') }}</span>
                     </div>
                     <div class="summary-item">
                         <span class="summary-label">Status:</span>                        <span class="status-badge status-{{ strtolower($pesanan->status_pesanan) }}">
@@ -802,12 +798,12 @@ function updateOrderStatus(newStatus) {
 }
 
 function printInvoice() {
-    window.open(`/admin/pesanan/{{ $pesanan->id }}/invoice`, '_blank');
+    window.open(`/admin/pesanan/{{ $pesanan->id_pesanan }}/invoice`, '_blank');
 }
 
 function sendNotification() {
     if (confirm('Kirim notifikasi status pesanan ke pelanggan?')) {
-        fetch(`/admin/pesanan/{{ $pesanan->id }}/notify`, {
+        fetch(`/admin/pesanan/{{ $pesanan->id_pesanan }}/notify`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -830,7 +826,7 @@ function sendNotification() {
 
 function deleteOrder() {
     if (confirm('Apakah Anda yakin ingin menghapus pesanan ini? Tindakan ini tidak dapat dibatalkan.')) {
-        fetch(`/admin/pesanan/{{ $pesanan->id }}`, {
+        fetch(`/admin/pesanan/{{ $pesanan->id_pesanan }}`, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')

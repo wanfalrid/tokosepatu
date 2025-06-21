@@ -181,18 +181,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($pesanan as $order)
-                        <tr class="order-row" data-order-id="{{ $order->id }}">
+                        @forelse($pesanan as $order)                        <tr class="order-row" data-order-id="{{ $order->id_pesanan }}">
                             <td>
                                 <div class="form-check">
-                                    <input class="form-check-input order-checkbox" type="checkbox" value="{{ $order->id }}">
+                                    <input class="form-check-input order-checkbox" type="checkbox" value="{{ $order->id_pesanan }}">
                                 </div>
-                            </td>
-                            <td>
+                            </td>                            <td>
                                 <div class="order-id-cell">
-                                    <span class="order-id">#{{ $order->id }}</span>
+                                    <span class="order-id">#{{ $order->id_pesanan }}</span>
                                     <div class="order-date-mobile d-md-none">
-                                        {{ $order->created_at->format('d M Y') }}
+                                        {{ $order->dibuat_pada instanceof \Illuminate\Support\Carbon ? $order->dibuat_pada->format('d M Y') : ($order->dibuat_pada ? date('d M Y', strtotime($order->dibuat_pada)) : 'N/A') }}
                                     </div>
                                 </div>
                             </td>
@@ -211,19 +209,17 @@
                                     <div class="item-count">{{ $order->detailPesanan->sum('jumlah') }} item</div>
                                 </div>
                             </td>
-                            <td>
-                                <div class="status-container">
-                                    <span class="status-badge status-{{ strtolower($order->status) }}">
-                                        {{ ucfirst($order->status) }}
+                            <td>                                <div class="status-container">
+                                    <span class="status-badge status-{{ strtolower($order->status_pesanan) }}">
+                                        {{ ucfirst($order->status_pesanan) }}
                                     </span>
-                                    <div class="status-actions">
-                                        <select class="form-select form-select-sm status-select" 
-                                                onchange="updateStatus({{ $order->id }}, this.value)">
-                                            <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                            <option value="diproses" {{ $order->status == 'diproses' ? 'selected' : '' }}>Diproses</option>
-                                            <option value="dikirim" {{ $order->status == 'dikirim' ? 'selected' : '' }}>Dikirim</option>
-                                            <option value="selesai" {{ $order->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                            <option value="dibatalkan" {{ $order->status == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                                    <div class="status-actions">                                        <select class="form-select form-select-sm status-select" 
+                                                onchange="updateStatus('{{ $order->id_pesanan }}', this.value)">
+                                            <option value="menunggu" {{ $order->status_pesanan == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
+                                            <option value="diproses" {{ $order->status_pesanan == 'diproses' ? 'selected' : '' }}>Diproses</option>
+                                            <option value="dikirim" {{ $order->status_pesanan == 'dikirim' ? 'selected' : '' }}>Dikirim</option>
+                                            <option value="selesai" {{ $order->status_pesanan == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                            <option value="dibatalkan" {{ $order->status_pesanan == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                                         </select>
                                     </div>
                                 </div>
@@ -238,21 +234,19 @@
                                 @else
                                     <span class="payment-badge payment-pending">Belum Bayar</span>
                                 @endif
-                            </td>
-                            <td class="d-none d-md-table-cell">
+                            </td>                            <td class="d-none d-md-table-cell">
                                 <div class="date-info">
-                                    <div class="order-date">{{ $order->created_at->format('d M Y') }}</div>
-                                    <div class="order-time">{{ $order->created_at->format('H:i') }}</div>
+                                    <div class="order-date">{{ $order->dibuat_pada instanceof \Illuminate\Support\Carbon ? $order->dibuat_pada->format('d M Y') : ($order->dibuat_pada ? date('d M Y', strtotime($order->dibuat_pada)) : 'N/A') }}</div>
+                                    <div class="order-time">{{ $order->dibuat_pada instanceof \Illuminate\Support\Carbon ? $order->dibuat_pada->format('H:i') : ($order->dibuat_pada ? date('H:i', strtotime($order->dibuat_pada)) : 'N/A') }}</div>
                                 </div>
                             </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="{{ route('admin.pesanan.show', $order->id) }}" 
+                            <td>                                <div class="action-buttons">
+                                    <a href="{{ route('admin.pesanan.show', $order->id_pesanan) }}" 
                                        class="btn btn-sm btn-outline-primary" title="Lihat Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <button class="btn btn-sm btn-outline-success" 
-                                            onclick="printInvoice({{ $order->id }})" title="Cetak Invoice">
+                                            onclick="printInvoice('{{ $order->id_pesanan }}')" title="Cetak Invoice">
                                         <i class="fas fa-print"></i>
                                     </button>
                                     <div class="dropdown">
@@ -260,16 +254,15 @@
                                                 type="button" data-bs-toggle="dropdown">
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
-                                        <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="{{ route('admin.pesanan.show', $order->id) }}">
+                                        <ul class="dropdown-menu">                                            <li><a class="dropdown-item" href="{{ route('admin.pesanan.show', $order->id_pesanan) }}">
                                                 <i class="fas fa-eye me-2"></i>Lihat Detail
                                             </a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="printInvoice({{ $order->id }})">
+                                            <li><a class="dropdown-item" href="#" onclick="printInvoice('{{ $order->id_pesanan }}')">
                                                 <i class="fas fa-print me-2"></i>Cetak Invoice
                                             </a></li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item text-danger" href="#" 
-                                                   onclick="deleteOrder({{ $order->id }})">
+                                                   onclick="deleteOrder('{{ $order->id_pesanan }}')">
                                                 <i class="fas fa-trash me-2"></i>Hapus
                                             </a></li>
                                         </ul>

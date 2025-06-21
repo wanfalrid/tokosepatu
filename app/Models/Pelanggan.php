@@ -14,7 +14,7 @@ class Pelanggan extends Authenticatable
     protected $primaryKey = 'id_pelanggan';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
+    public $timestamps = true; // Enable timestamps for updated_at
 
     protected $fillable = [
         'id_pelanggan',
@@ -36,7 +36,12 @@ class Pelanggan extends Authenticatable
     protected $casts = [
         'tanggal_lahir' => 'date',
         'dibuat_pada' => 'datetime',
+        'updated_at' => 'datetime',
     ];
+
+    // Custom timestamp column names
+    const CREATED_AT = 'dibuat_pada';
+    const UPDATED_AT = 'updated_at';
 
     // Define custom created_at accessor
     public function getCreatedAtAttribute()

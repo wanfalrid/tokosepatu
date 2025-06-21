@@ -9,11 +9,10 @@ use App\Models\TrackingPesanan;
 use Illuminate\Support\Str;
 
 class PesananController extends Controller
-{
-    public function index()
+{    public function index()
     {
         $pesanan = Pesanan::with(['pembayaran', 'detailPesanan.produk'])
-                          ->orderBy('tanggal_pesanan', 'desc')
+                          ->orderBy('dibuat_pada', 'desc')
                           ->paginate(10);
         return view('admin.pesanan.index', compact('pesanan'));
     }

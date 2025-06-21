@@ -545,9 +545,8 @@
                         <span class="nav-text">Pesanan</span>
                     </a>
                 </div>
-                
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
+                  <div class="nav-item">
+                    <a href="{{ route('admin.pelanggan.index') }}" class="nav-link {{ request()->routeIs('admin.pelanggan.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-users"></i>
                         <span class="nav-text">Pelanggan</span>
                     </a>
