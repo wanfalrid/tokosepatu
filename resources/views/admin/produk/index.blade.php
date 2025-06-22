@@ -311,15 +311,111 @@
                     </div>
                 @endif
             </div>
-            
-            @if($produk->hasPages())
-            <div class="card-footer">
-                <div class="d-flex justify-content-between align-items-center">
+              @if($produk->hasPages())
+            <div class="card-footer border-0 bg-transparent">
+                <div class="pagination-wrapper">
+                    <!-- Pagination Info -->
                     <div class="pagination-info">
-                        Menampilkan {{ $produk->firstItem() }} - {{ $produk->lastItem() }} dari {{ $produk->total() }} produk
+                        <div class="info-text">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Menampilkan <strong>{{ $produk->firstItem() }}</strong> - <strong>{{ $produk->lastItem() }}</strong> 
+                            dari <strong>{{ $produk->total() }}</strong> produk
+                        </div>
+                        <div class="page-info">
+                            Halaman <strong>{{ $produk->currentPage() }}</strong> dari <strong>{{ $produk->lastPage() }}</strong>
+                        </div>
                     </div>
-                    <nav>
-                        {{ $produk->links() }}
+                    
+                    <!-- Custom Pagination -->
+                    <nav class="pagination-nav">
+                        <div class="pagination-controls">
+                            <!-- First Page -->
+                            @if($produk->currentPage() > 1)
+                                <a href="{{ $produk->url(1) }}" class="pagination-btn pagination-first" title="Halaman Pertama">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            @else
+                                <span class="pagination-btn pagination-first disabled">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </span>
+                            @endif
+                            
+                            <!-- Previous Page -->
+                            @if($produk->previousPageUrl())
+                                <a href="{{ $produk->previousPageUrl() }}" class="pagination-btn pagination-prev" title="Halaman Sebelumnya">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            @else
+                                <span class="pagination-btn pagination-prev disabled">
+                                    <i class="fas fa-angle-left"></i>
+                                </span>
+                            @endif
+                            
+                            <!-- Page Numbers -->
+                            <div class="pagination-numbers">
+                                @php
+                                    $start = max(1, $produk->currentPage() - 2);
+                                    $end = min($produk->lastPage(), $produk->currentPage() + 2);
+                                @endphp
+                                
+                                @if($start > 1)
+                                    <a href="{{ $produk->url(1) }}" class="pagination-number">1</a>
+                                    @if($start > 2)
+                                        <span class="pagination-dots">...</span>
+                                    @endif
+                                @endif
+                                
+                                @for($i = $start; $i <= $end; $i++)
+                                    @if($i == $produk->currentPage())
+                                        <span class="pagination-number active">{{ $i }}</span>
+                                    @else
+                                        <a href="{{ $produk->url($i) }}" class="pagination-number">{{ $i }}</a>
+                                    @endif
+                                @endfor
+                                
+                                @if($end < $produk->lastPage())
+                                    @if($end < $produk->lastPage() - 1)
+                                        <span class="pagination-dots">...</span>
+                                    @endif
+                                    <a href="{{ $produk->url($produk->lastPage()) }}" class="pagination-number">{{ $produk->lastPage() }}</a>
+                                @endif
+                            </div>
+                            
+                            <!-- Next Page -->
+                            @if($produk->nextPageUrl())
+                                <a href="{{ $produk->nextPageUrl() }}" class="pagination-btn pagination-next" title="Halaman Selanjutnya">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            @else
+                                <span class="pagination-btn pagination-next disabled">
+                                    <i class="fas fa-angle-right"></i>
+                                </span>
+                            @endif
+                            
+                            <!-- Last Page -->
+                            @if($produk->currentPage() < $produk->lastPage())
+                                <a href="{{ $produk->url($produk->lastPage()) }}" class="pagination-btn pagination-last" title="Halaman Terakhir">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            @else
+                                <span class="pagination-btn pagination-last disabled">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </span>
+                            @endif
+                        </div>
+                        
+                        <!-- Per Page Selector -->
+                        <div class="per-page-selector">
+                            <label for="perPage" class="per-page-label">
+                                <i class="fas fa-list me-2"></i>Per halaman:
+                            </label>
+                            <select id="perPage" class="form-select form-select-sm" onchange="changePerPage(this.value)">
+                                <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10</option>
+                                <option value="25" {{ request('per_page', 10) == 25 ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ request('per_page', 10) == 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ request('per_page', 10) == 100 ? 'selected' : '' }}>100</option>
+                            </select>
+                        </div>
                     </nav>
                 </div>
             </div>
@@ -702,14 +798,147 @@
 
     .table tbody tr:hover {
         background: #f8f9fa;
-    }
-
-    .pagination-info {
+    }    .pagination-info {
         color: #6c757d;
         font-size: 0.875rem;
     }
 
-    /* Responsive */
+    /* Enhanced Pagination Styles */
+    .pagination-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 0;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .pagination-info .info-text {
+        font-size: 0.95rem;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    .pagination-info .page-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+
+    .pagination-nav {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: white;
+        border-radius: 12px;
+        padding: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+
+    .pagination-btn:hover:not(.disabled) {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .pagination-numbers {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin: 0 0.5rem;
+    }
+
+    .pagination-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #495057;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+    .pagination-number:hover {
+        background: #f8f9fa;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-1px);
+    }
+
+    .pagination-number.active {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .pagination-dots {
+        color: #6c757d;
+        padding: 0 0.5rem;
+        font-weight: bold;
+    }
+
+    .per-page-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: white;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .per-page-label {
+        font-size: 0.875rem;
+        color: #495057;
+        font-weight: 500;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .per-page-selector .form-select {
+        min-width: 80px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.375rem 2rem 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .per-page-selector .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }    /* Responsive */
     @media (max-width: 768px) {
         .product-management {
             padding: 1rem;
@@ -725,6 +954,65 @@
         
         .page-actions {
             margin-top: 1rem;
+        }
+        
+        /* Responsive Pagination */
+        .pagination-wrapper {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+        
+        .pagination-nav {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .pagination-controls {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .pagination-numbers {
+            margin: 0;
+        }
+        
+        .pagination-number,
+        .pagination-btn {
+            width: 35px;
+            height: 35px;
+            font-size: 0.875rem;
+        }
+        
+        .per-page-selector {
+            justify-content: center;
+        }
+        
+        .pagination-info {
+            text-align: center;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .pagination-controls {
+            padding: 0.25rem;
+        }
+        
+        .pagination-number,
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+        }
+        
+        .pagination-numbers {
+            gap: 0.125rem;
+        }
+        
+        /* Hide some pagination elements on very small screens */
+        .pagination-first,
+        .pagination-last {
+            display: none;
         }
     }
 </style>
@@ -778,8 +1066,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterSelects = document.querySelectorAll('.filter-section select');
     filterSelects.forEach(select => {
         select.addEventListener('change', function() {
-            this.closest('form').submit();
-        });
+            this.closest('form').submit();        });
     });
 
     // Success message
@@ -795,6 +1082,51 @@ document.addEventListener('DOMContentLoaded', function() {
             timerProgressBar: true
         });
     @endif
+});
+
+// Pagination Functions
+function changePerPage(perPage) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', perPage);
+    url.searchParams.delete('page'); // Reset to first page when changing per_page
+    window.location.href = url.toString();
+}
+
+// Add loading animation to pagination links
+document.addEventListener('DOMContentLoaded', function() {
+    const paginationLinks = document.querySelectorAll('.pagination-number, .pagination-btn');
+    
+    paginationLinks.forEach(link => {
+        if (!link.classList.contains('disabled') && !link.classList.contains('active')) {
+            link.addEventListener('click', function(e) {
+                // Add loading state
+                this.style.opacity = '0.6';
+                this.style.pointerEvents = 'none';
+                
+                // Add loading icon
+                const originalContent = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                // Don't prevent navigation, just show loading
+                setTimeout(() => {
+                    if (this.style.opacity === '0.6') {
+                        this.innerHTML = originalContent;
+                        this.style.opacity = '1';
+                        this.style.pointerEvents = 'auto';
+                    }
+                }, 3000);
+            });
+        }
+    });
+    
+    // Add smooth scroll to top when pagination is used
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('page') || urlParams.has('per_page')) {
+        document.querySelector('.page-header').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
 });
 </script>
 @endpush

@@ -212,7 +212,7 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>                        @foreach($produk->detailPesanan()->with('pesanan.pelanggan')->latest()->take(5)->get() as $detail)
+                    <tbody>                        @foreach($produk->detailPesanan()->with('pesanan.pelanggan')->orderBy('id_detail_pesanan', 'desc')->take(5)->get() as $detail)
                         <tr class="order-row">
                             <td>
                                 <span class="order-id">#{{ $detail->pesanan ? $detail->pesanan->id_pesanan : '-' }}</span>
@@ -232,14 +232,11 @@
                                 @if($detail->pesanan && $detail->pesanan->tanggal_pesanan)
                                     <span class="date">{{ $detail->pesanan->tanggal_pesanan->format('d M Y') }}</span>
                                     <div class="time">{{ $detail->pesanan->tanggal_pesanan->format('H:i') }}</div>
-                                @elseif($detail->created_at)
-                                    <span class="date">{{ $detail->created_at->format('d M Y') }}</span>
-                                    <div class="time">{{ $detail->created_at->format('H:i') }}</div>
                                 @else
                                     <span class="date">-</span>
                                     <div class="time">-</div>
                                 @endif
-                            </td>                            <td>
+                            </td><td>
                                 @if($detail->pesanan && $detail->pesanan->status)
                                     <span class="status-badge status-{{ strtolower($detail->pesanan->status) }}">
                                         {{ $detail->pesanan->status }}

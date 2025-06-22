@@ -11,11 +11,22 @@ use Illuminate\Support\Facades\Log;
 
 class ProdukController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $produk = Produk::orderBy('dibuat_pada', 'desc')->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        
+        // Validate per_page parameter
+        if (!in_array($perPage, [10, 25, 50, 100])) {
+            $perPage = 10;
+        }
+        
+        $produk = Produk::orderBy('dibuat_pada', 'desc')->paginate($perPage);
+        
+        // Append query parameters to pagination links
+        $produk->appends($request->query());
+        
         return view('admin.produk.index', compact('produk'));
-    }    public function create()
+    }public function create()
     {
         return view('admin.produk.create');
     }    public function store(Request $request)
