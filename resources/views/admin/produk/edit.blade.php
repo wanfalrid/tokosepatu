@@ -33,21 +33,30 @@
                     </h3>
                     <div class="product-id-badge">ID: #{{ $produk->id_produk }}</div>
                 </div>
-                <div class="form-card-body">
-                    <form action="{{ route('admin.produk.update', $produk->id_produk) }}" method="POST" enctype="multipart/form-data" id="productForm">
+                <div class="form-card-body">                    <form action="{{ route('admin.produk.update', $produk->id_produk) }}" method="POST" enctype="multipart/form-data" id="productForm">
                         @csrf
                         @method('PUT')
+                        
+                        <!-- Debug Info -->
+                        @if(config('app.debug'))
+                            <div class="alert alert-info mb-3">
+                                <small>
+                                    Debug: Form Action: {{ route('admin.produk.update', $produk->id_produk) }}<br>
+                                    Method: PUT<br>
+                                    CSRF Token: {{ csrf_token() }}
+                                </small>
+                            </div>
+                        @endif
                         
                         <div class="row g-4">                            <!-- Product Name -->
                             <div class="col-12">
                                 <div class="form-floating">
                                     <input type="text" class="form-control @error('nama_produk') is-invalid @enderror" 
                                            id="nama_produk" name="nama_produk" placeholder="Nama Produk" 
-                                           value="{{ old('nama_produk', $produk->nama_produk) }}" required>
-                                    <label for="nama_produk">
+                                           value="{{ old('nama_produk', $produk->nama_produk) }}" required>                                    <label for="nama_produk">
                                         <i class="fas fa-tag me-2"></i>Nama Produk
                                     </label>
-                                    @error('nama')
+                                    @error('nama_produk')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -175,9 +184,8 @@
                                 <div class="current-image-section">
                                     <label class="form-label">
                                         <i class="fas fa-image me-2"></i>Gambar Saat Ini
-                                    </label>
-                                    <div class="current-image-wrapper">
-                                        <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="current-image">
+                                    </label>                                    <div class="current-image-wrapper">
+                                        <img src="{{ $produk->image_url }}" alt="{{ $produk->nama_produk }}" class="current-image">
                                         <div class="image-overlay">
                                             <span class="change-text">Klik "Pilih File" untuk mengganti</span>
                                         </div>
@@ -227,10 +235,8 @@
                                 </div>
                             </div>
                         </div>
-                    </form>
-
-                    <!-- Delete Form (Hidden) -->
-                    <form id="deleteForm" action="{{ route('admin.produk.destroy', $produk->id) }}" method="POST" style="display: none;">
+                    </form>                    <!-- Delete Form (Hidden) -->
+                    <form id="deleteForm" action="{{ route('admin.produk.destroy', $produk->id_produk) }}" method="POST" style="display: none;">
                         @csrf
                         @method('DELETE')
                     </form>
@@ -507,6 +513,14 @@
 </style>
 
 <script>
+// Add CSRF token to meta tag if not exists
+if (!document.querySelector('meta[name="csrf-token"]')) {
+    const metaTag = document.createElement('meta');
+    metaTag.name = 'csrf-token';
+    metaTag.content = '{{ csrf_token() }}';
+    document.head.appendChild(metaTag);
+}
+
 function previewImage(input) {
     const preview = document.getElementById('imagePreview');
     
@@ -535,12 +549,32 @@ function confirmDelete() {
 }
 
 document.getElementById('productForm').addEventListener('submit', function(e) {
+    // Prevent double submission
     const submitBtn = document.querySelector('.btn-submit');
+    if (submitBtn.classList.contains('loading')) {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Ensure form method is correct
+    const methodInput = this.querySelector('input[name="_method"]');
+    if (!methodInput || methodInput.value !== 'PUT') {
+        console.error('Form method is not PUT:', methodInput ? methodInput.value : 'missing');
+    }
+    
+    // Ensure CSRF token exists
+    const csrfInput = this.querySelector('input[name="_token"]');
+    if (!csrfInput) {
+        console.error('CSRF token is missing');
+    }
+    
     submitBtn.classList.add('loading');
     
-    // Disable all form inputs
-    const inputs = this.querySelectorAll('input, select, textarea, button');
-    inputs.forEach(input => input.disabled = true);
+    // Disable submit button to prevent double submission
+    submitBtn.disabled = true;
+    
+    // Don't disable all inputs, let form submit normally
+    console.log('Form submitting to:', this.action, 'with method:', this.method);
 });
 
 // Real-time form validation

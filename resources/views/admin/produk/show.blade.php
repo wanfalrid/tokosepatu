@@ -10,14 +10,13 @@
             <div>
                 <h1 class="page-title">
                     <i class="fas fa-eye me-3"></i>Detail Produk
-                </h1>
-                <p class="page-subtitle">Informasi lengkap produk: {{ $produk->nama }}</p>
+                </h1>                <p class="page-subtitle">Informasi lengkap produk: {{ $produk->nama_produk }}</p>
             </div>
             <div class="page-actions">
                 <a href="{{ route('admin.produk.index') }}" class="btn btn-outline-secondary me-2">
                     <i class="fas fa-arrow-left me-2"></i>Kembali
                 </a>
-                <a href="{{ route('admin.produk.edit', $produk->id) }}" class="btn btn-primary">
+                <a href="{{ route('admin.produk.edit', $produk->id_produk) }}" class="btn btn-primary">
                     <i class="fas fa-edit me-2"></i>Edit Produk
                 </a>
             </div>
@@ -29,9 +28,8 @@
         <!-- Product Image -->
         <div class="col-lg-5">
             <div class="product-image-card">
-                <div class="product-image-wrapper">
-                    @if($produk->gambar)
-                        <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="product-image">
+                <div class="product-image-wrapper">                    @if($produk->gambar)
+                        <img src="{{ $produk->image_url }}" alt="{{ $produk->nama_produk }}" class="product-image">
                     @else
                         <div class="no-image-placeholder">
                             <i class="fas fa-image"></i>
@@ -56,7 +54,7 @@
                 
                 <!-- Quick Actions -->
                 <div class="quick-actions">
-                    <button class="action-btn action-edit" onclick="location.href='{{ route('admin.produk.edit', $produk->id) }}'">
+                    <button class="action-btn action-edit" onclick="location.href='{{ route('admin.produk.edit', $produk->id_produk) }}'">
                         <i class="fas fa-edit"></i>
                         <span>Edit</span>
                     </button>
@@ -75,10 +73,9 @@
         <!-- Product Information -->
         <div class="col-lg-7">
             <div class="product-info-card">
-                <!-- Product Header -->
-                <div class="product-header">
-                    <div class="product-id">ID: #{{ $produk->id }}</div>
-                    <h2 class="product-name">{{ $produk->nama }}</h2>
+                <!-- Product Header -->                <div class="product-header">
+                    <div class="product-id">ID: #{{ $produk->id_produk }}</div>
+                    <h2 class="product-name">{{ $produk->nama_produk }}</h2>
                     <div class="product-brand">
                         <i class="fas fa-crown me-2"></i>{{ $produk->merek }}
                     </div>
@@ -141,10 +138,9 @@
                     <div class="detail-item">
                         <div class="detail-icon">
                             <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="detail-content">
+                        </div>                        <div class="detail-content">
                             <div class="detail-label">Ditambahkan</div>
-                            <div class="detail-value">{{ $produk->created_at->format('d M Y, H:i') }}</div>
+                            <div class="detail-value">{{ $produk->dibuat_pada ? $produk->dibuat_pada->format('d M Y, H:i') : '-' }}</div>
                         </div>
                     </div>
                 </div>
@@ -165,22 +161,26 @@
                 <div class="product-stats">
                     <h4 class="stats-title">
                         <i class="fas fa-chart-bar me-2"></i>Statistik Produk
-                    </h4>
-                    <div class="stats-grid">
+                    </h4>                    <div class="stats-grid">
                         <div class="stat-item">
-                            <div class="stat-value">{{ $produk->detailPesanan->count() }}</div>
+                            <div class="stat-value">{{ $produk->detailPesanan ? $produk->detailPesanan->count() : 0 }}</div>
                             <div class="stat-label">Total Penjualan</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">{{ $produk->detailPesanan->sum('jumlah') }}</div>
+                            <div class="stat-value">{{ $produk->detailPesanan ? $produk->detailPesanan->sum('jumlah') : 0 }}</div>
                             <div class="stat-label">Unit Terjual</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">Rp {{ number_format($produk->detailPesanan->sum('subtotal'), 0, ',', '.') }}</div>
+                            <div class="stat-value">Rp {{ number_format($produk->detailPesanan ? $produk->detailPesanan->sum('subtotal') : 0, 0, ',', '.') }}</div>
                             <div class="stat-label">Total Revenue</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">{{ $produk->updated_at->diffForHumans() }}</div>
+                        </div><div class="stat-item">
+                            <div class="stat-value">
+                                @if($produk->dibuat_pada)
+                                    {{ $produk->dibuat_pada->diffForHumans() }}
+                                @else
+                                    -
+                                @endif
+                            </div>
                             <div class="stat-label">Terakhir Update</div>
                         </div>
                     </div>
@@ -212,16 +212,15 @@
                             <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach($produk->detailPesanan()->with('pesanan.pelanggan')->latest()->take(5)->get() as $detail)
+                    <tbody>                        @foreach($produk->detailPesanan()->with('pesanan.pelanggan')->latest()->take(5)->get() as $detail)
                         <tr class="order-row">
                             <td>
-                                <span class="order-id">#{{ $detail->pesanan->id }}</span>
+                                <span class="order-id">#{{ $detail->pesanan ? $detail->pesanan->id_pesanan : '-' }}</span>
                             </td>
                             <td>
                                 <div class="customer-info">
-                                    <div class="customer-name">{{ $detail->pesanan->pelanggan->nama }}</div>
-                                    <div class="customer-email">{{ $detail->pesanan->pelanggan->email }}</div>
+                                    <div class="customer-name">{{ $detail->pesanan && $detail->pesanan->pelanggan ? $detail->pesanan->pelanggan->nama : '-' }}</div>
+                                    <div class="customer-email">{{ $detail->pesanan && $detail->pesanan->pelanggan ? $detail->pesanan->pelanggan->email : '-' }}</div>
                                 </div>
                             </td>
                             <td>
@@ -229,15 +228,27 @@
                             </td>
                             <td>
                                 <span class="amount">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</span>
-                            </td>
-                            <td>
-                                <span class="date">{{ $detail->created_at->format('d M Y') }}</span>
-                                <div class="time">{{ $detail->created_at->format('H:i') }}</div>
-                            </td>
-                            <td>
-                                <span class="status-badge status-{{ strtolower($detail->pesanan->status) }}">
-                                    {{ $detail->pesanan->status }}
-                                </span>
+                            </td>                            <td>
+                                @if($detail->pesanan && $detail->pesanan->tanggal_pesanan)
+                                    <span class="date">{{ $detail->pesanan->tanggal_pesanan->format('d M Y') }}</span>
+                                    <div class="time">{{ $detail->pesanan->tanggal_pesanan->format('H:i') }}</div>
+                                @elseif($detail->created_at)
+                                    <span class="date">{{ $detail->created_at->format('d M Y') }}</span>
+                                    <div class="time">{{ $detail->created_at->format('H:i') }}</div>
+                                @else
+                                    <span class="date">-</span>
+                                    <div class="time">-</div>
+                                @endif
+                            </td>                            <td>
+                                @if($detail->pesanan && $detail->pesanan->status)
+                                    <span class="status-badge status-{{ strtolower($detail->pesanan->status) }}">
+                                        {{ $detail->pesanan->status }}
+                                    </span>
+                                @else
+                                    <span class="status-badge status-unknown">
+                                        -
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -250,7 +261,7 @@
 </div>
 
 <!-- Delete Form (Hidden) -->
-<form id="deleteForm" action="{{ route('admin.produk.destroy', $produk->id) }}" method="POST" style="display: none;">
+<form id="deleteForm" action="{{ route('admin.produk.destroy', $produk->id_produk) }}" method="POST" style="display: none;">
     @csrf
     @method('DELETE')
 </form>
@@ -693,10 +704,9 @@ function confirmDelete() {
 }
 
 function duplicateProduct() {
-    if (confirm('Apakah Anda ingin membuat duplikat produk ini?')) {
-        // Redirect to create page with prefilled data
+    if (confirm('Apakah Anda ingin membuat duplikat produk ini?')) {        // Redirect to create page with prefilled data
         const currentUrl = new URL(window.location.href);
-        window.location.href = `{{ route('admin.produk.create') }}?duplicate={{ $produk->id }}`;
+        window.location.href = `{{ route('admin.produk.create') }}?duplicate={{ $produk->id_produk }}`;
     }
 }
 

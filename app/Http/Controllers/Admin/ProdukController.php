@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Produk;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ProdukController extends Controller
 {
@@ -13,26 +15,11 @@ class ProdukController extends Controller
     {
         $produk = Produk::orderBy('dibuat_pada', 'desc')->paginate(10);
         return view('admin.produk.index', compact('produk'));
-    }
-      public function create()
+    }    public function create()
     {
-        // Ensure session is started
-        if (!session()->isStarted()) {
-            session()->start();
-        }
-        
-        // Regenerate CSRF token to prevent issues
-        session()->regenerateToken();
-        
         return view('admin.produk.create');
     }    public function store(Request $request)
     {
-        // Ensure session is active and check CSRF
-        if (!$request->hasValidSignature() && !$request->session()->token() === $request->input('_token')) {
-            // Session might be expired, regenerate and try again
-            session()->regenerateToken();
-        }
-        
         $request->validate([
             'nama_produk' => 'required|string|max:255',
             'deskripsi' => 'required|string',
@@ -43,20 +30,20 @@ class ProdukController extends Controller
             'warna' => 'required|string|max:50',
             'ukuran' => 'required|string|max:100',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
-        
-        $gambarPath = null;
+        ]);        $gambarPath = null;
         if ($request->hasFile('gambar')) {
-            // Ensure product images directory exists
-            $imageDir = public_path('storage/product_images');
-            if (!file_exists($imageDir)) {
-                mkdir($imageDir, 0755, true);
-            }
-            
             $file = $request->file('gambar');
             $filename = 'product_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move($imageDir, $filename);
-            $gambarPath = $filename;
+            
+            // Store file using Laravel Storage
+            $path = $file->storeAs('product_images', $filename, 'public');
+            $gambarPath = $filename; // Store only filename in database
+              // Debug log
+            Log::info('Image uploaded', [
+                'filename' => $filename,
+                'path' => $path,
+                'exists' => Storage::disk('public')->exists('product_images/' . $filename)
+            ]);
         }
         
         $produk = Produk::create([
@@ -76,19 +63,15 @@ class ProdukController extends Controller
         return redirect()->route('admin.produk.index')
                         ->with('success', 'Produk berhasil ditambahkan!');
     }
-    
-    public function show($id)
+      public function show(Produk $produk)
     {
-        $produk = Produk::findOrFail($id);
         return view('admin.produk.show', compact('produk'));
     }
     
-    public function edit($id)
+    public function edit(Produk $produk)
     {
-        $produk = Produk::findOrFail($id);
         return view('admin.produk.edit', compact('produk'));
-    }
-      public function update(Request $request, $id)
+    }    public function update(Request $request, Produk $produk)
     {
         $request->validate([
             'nama_produk' => 'required|string|max:255',
@@ -102,43 +85,39 @@ class ProdukController extends Controller
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
         
-        $produk = Produk::findOrFail($id);
-        
         $data = $request->only([
             'nama_produk', 'deskripsi', 'harga', 'stok', 
             'merek', 'kategori', 'warna', 'ukuran'
-        ]);
-        
-        if ($request->hasFile('gambar')) {
+        ]);        if ($request->hasFile('gambar')) {
             // Delete old image if exists
-            if ($produk->gambar && file_exists(public_path('storage/product_images/' . $produk->gambar))) {
-                unlink(public_path('storage/product_images/' . $produk->gambar));
-            }
-            
-            // Ensure product images directory exists
-            $imageDir = public_path('storage/product_images');
-            if (!file_exists($imageDir)) {
-                mkdir($imageDir, 0755, true);
+            if ($produk->gambar && Storage::disk('public')->exists('product_images/' . $produk->gambar)) {
+                Storage::disk('public')->delete('product_images/' . $produk->gambar);
             }
             
             $file = $request->file('gambar');
             $filename = 'product_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move($imageDir, $filename);
-            $data['gambar'] = $filename;
+            
+            // Store file using Laravel Storage
+            $path = $file->storeAs('product_images', $filename, 'public');
+            $data['gambar'] = $filename; // Store only filename in database
+            
+            // Debug log
+            Log::info('Image updated', [
+                'filename' => $filename,
+                'path' => $path,
+                'exists' => Storage::disk('public')->exists('product_images/' . $filename)
+            ]);
         }
         
         $produk->update($data);
         
         return redirect()->route('admin.produk.index')
                         ->with('success', 'Produk berhasil diperbarui!');
-    }
-      public function destroy($id)
+    }    public function destroy(Produk $produk)
     {
-        $produk = Produk::findOrFail($id);
-        
         // Delete image if exists
-        if ($produk->gambar && file_exists(public_path('storage/product_images/' . $produk->gambar))) {
-            unlink(public_path('storage/product_images/' . $produk->gambar));
+        if ($produk->gambar && Storage::disk('public')->exists('product_images/' . $produk->gambar)) {
+            Storage::disk('public')->delete('product_images/' . $produk->gambar);
         }
         
         $produk->delete();

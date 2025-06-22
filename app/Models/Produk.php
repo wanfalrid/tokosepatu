@@ -32,6 +32,19 @@ class Produk extends Model
         'dibuat_pada' => 'datetime',
     ];
 
+    public function getRouteKeyName()
+    {
+        return 'id_produk';
+    }
+
+    public function getImageUrlAttribute()
+    {
+        if ($this->gambar) {
+            return asset('storage/product_images/' . $this->gambar);
+        }
+        return null;
+    }
+
     public function detailPesanan()
     {
         return $this->hasMany(DetailPesanan::class, 'id_produk', 'id_produk');

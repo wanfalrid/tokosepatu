@@ -163,8 +163,7 @@
                             @foreach($produk as $item)
                             <div class="col-xl-3 col-lg-4 col-md-6">
                                 <div class="product-card">
-                                    <div class="product-image">
-                                        <img src="{{ $item->gambar ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80' }}" 
+                                    <div class="product-image">                                        <img src="{{ $item->image_url ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80' }}" 
                                              alt="{{ $item->nama_produk }}" 
                                              class="img-fluid">
                                         
@@ -240,8 +239,7 @@
                                     @foreach($produk as $item)
                                     <tr>
                                         <td>
-                                            <div class="d-flex align-items-center">
-                                                <img src="{{ $item->gambar ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=60&q=80' }}" 
+                                            <div class="d-flex align-items-center">                                                <img src="{{ $item->image_url ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=60&q=80' }}" 
                                                      alt="{{ $item->nama_produk }}" 
                                                      class="product-thumb me-3">
                                                 <div>
@@ -764,15 +762,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const deleteButtons = document.querySelectorAll('.delete-product');
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     const deleteForm = document.getElementById('deleteForm');
-    const productNameSpan = document.getElementById('productName');
-
-    deleteButtons.forEach(button => {
+    const productNameSpan = document.getElementById('productName');    deleteButtons.forEach(button => {
         button.addEventListener('click', function() {
             const productId = this.dataset.id;
             const productName = this.dataset.name;
             
             productNameSpan.textContent = productName;
-            deleteForm.action = `{{ route('admin.produk.index') }}/${productId}`;
+            deleteForm.action = `{{ url('admin/produk') }}/${productId}`;
             
             deleteModal.show();
         });
