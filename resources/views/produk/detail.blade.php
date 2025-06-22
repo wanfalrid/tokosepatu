@@ -10,7 +10,8 @@
             <!-- Product Images -->
             <div class="col-lg-6" data-aos="fade-right">
                 <div class="product-gallery">
-                    <div class="main-image mb-3">                        <img src="{{ $produk->image_url }}" 
+                    <div class="main-image mb-3">
+                        <img src="{{ $produk->image_url }}" 
                              class="img-fluid rounded-3 shadow-lg" 
                              alt="{{ $produk->nama_produk }}"
                              id="mainProductImage"
