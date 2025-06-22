@@ -18,10 +18,10 @@ try {
     } else {
         // Create admin
         $result = DB::table('pengguna')->insert([
-            'id_pengguna' => 'ADM001',
+            'id_pengguna' => 'ADM002',
             'nama_lengkap' => 'Super Admin',
-            'email' => 'admin@shoemart.com',
-            'kata_sandi' => Hash::make('admin123'),
+            'email' => 'najwan.com',
+            'kata_sandi' => Hash::make('kplpkl123'),
             'peran' => 'admin',
             'telepon' => '08123456789',
             'dibuat_pada' => now(),

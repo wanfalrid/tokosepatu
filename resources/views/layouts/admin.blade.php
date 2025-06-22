@@ -557,9 +557,8 @@
                         <span class="nav-text">Laporan</span>
                     </a>
                 </div>
-                
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
+                  <div class="nav-item">
+                    <a href="{{ route('admin.pengaturan.index') }}" class="nav-link {{ request()->routeIs('admin.pengaturan.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-cog"></i>
                         <span class="nav-text">Pengaturan</span>
                     </a>
@@ -583,10 +582,9 @@
                         <div class="dropdown">
                             <button class="profile-btn dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="fas fa-user"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profil</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Pengaturan</a></li>
+                            </button>                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ route('admin.pengaturan.index') }}"><i class="fas fa-user me-2"></i>Profil</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.pengaturan.index') }}"><i class="fas fa-cog me-2"></i>Pengaturan</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{{ route('admin.logout') }}" method="POST" class="d-inline">

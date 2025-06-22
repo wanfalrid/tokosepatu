@@ -12,9 +12,8 @@
 <body>
     <div class="login-container">
         <div class="login-background"></div>
-        
-        <div class="container-fluid h-100">
-            <div class="row h-100">
+          <div class="container-fluid" style="min-height: 100vh;">
+            <div class="row" style="min-height: 100vh;">
                 <!-- Left Side - Branding -->
                 <div class="col-lg-6 d-none d-lg-flex login-brand-side">
                     <div class="brand-content" data-aos="fade-right">
@@ -57,10 +56,9 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Right Side - Login Form -->
-                <div class="col-lg-6 d-flex align-items-center justify-content-center login-form-side">
-                    <div class="login-form-container" data-aos="fade-left">
+                  <!-- Right Side - Login Form -->
+                <div class="col-lg-6 d-flex align-items-stretch login-form-side">
+                    <div class="login-form-container d-flex flex-column justify-content-center w-100" data-aos="fade-left">
                         <div class="login-header text-center mb-5">
                             <div class="login-icon mb-3">
                                 <i class="fas fa-user-shield"></i>
@@ -133,8 +131,15 @@
                                 Masuk ke Dashboard
                             </button>
                         </form>
-                        
-                        <div class="login-footer text-center">
+                          <div class="login-footer text-center">
+                            <div class="register-link mb-3">
+                                <p class="mb-1">Belum punya akun admin?</p>
+                                <a href="{{ route('admin.register') }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Daftar Admin Baru
+                                </a>
+                            </div>
+                            
                             <div class="demo-credentials">
                                 <small class="text-muted">
                                     <strong>Demo Credentials:</strong><br>
@@ -224,15 +229,14 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        body {
+        }        body {
             font-family: 'Poppins', sans-serif;
-            overflow: hidden;
+            overflow-x: hidden;
+            min-height: 100vh;
         }
 
         .login-container {
-            height: 100vh;
+            min-height: 100vh;
             position: relative;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
@@ -245,9 +249,7 @@
             bottom: 0;
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
             opacity: 0.3;
-        }
-
-        .login-brand-side {
+        }        .login-brand-side {
             background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
             backdrop-filter: blur(10px);
             border-right: 1px solid rgba(255,255,255,0.2);
@@ -256,6 +258,8 @@
             justify-content: center;
             align-items: center;
             padding: 3rem;
+            min-height: 100vh;
+            overflow-y: auto;
         }
 
         .brand-content {
@@ -338,18 +342,17 @@
             opacity: 0.9;
             margin: 0;
             line-height: 1.4;
-        }
-
-        .login-form-side {
+        }        .login-form-side {
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(10px);
             padding: 2rem;
-        }
-
-        .login-form-container {
+            min-height: 100vh;
+            overflow-y: auto;
+        }        .login-form-container {
             width: 100%;
             max-width: 400px;
             padding: 2rem;
+            margin: auto;
         }
 
         .login-header {
@@ -553,16 +556,17 @@
             50% {
                 transform: translateY(-20px);
             }
-        }
-
-        /* Responsive */
+        }        /* Responsive */
         @media (max-width: 991px) {
             .login-form-side {
                 background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%);
+                min-height: 100vh;
+                padding: 2rem 1rem;
             }
             
             .login-form-container {
                 padding: 1rem;
+                max-height: none;
             }
             
             .brand-name {
@@ -571,8 +575,17 @@
         }
 
         @media (max-width: 576px) {
+            .login-container {
+                padding: 1rem 0;
+            }
+            
+            .login-form-side {
+                padding: 1rem;
+            }
+            
             .login-form-container {
                 padding: 1rem 0.5rem;
+                max-width: 100%;
             }
             
             .login-title {

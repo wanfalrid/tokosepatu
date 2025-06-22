@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
@@ -15,10 +16,16 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // For now, we'll check if the session has admin access
-        // In a real application, you would check user authentication and role
-        if (!session()->has('admin_logged_in')) {
+        // Check if admin is authenticated using admin guard
+        if (!Auth::guard('admin')->check()) {
             return redirect()->route('admin.login');
+        }
+        
+        // Check if user has admin role
+        $admin = Auth::guard('admin')->user();
+        if ($admin->peran !== 'admin') {
+            Auth::guard('admin')->logout();
+            return redirect()->route('admin.login')->with('error', 'Akses ditolak. Anda bukan admin.');
         }
         
         return $next($request);

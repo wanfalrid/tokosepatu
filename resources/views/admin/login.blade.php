@@ -135,14 +135,6 @@
                         </form>
                         
                         <div class="login-footer text-center">
-                            <div class="demo-credentials">
-                                <small class="text-muted">
-                                    <strong>Demo Credentials:</strong><br>
-                                    Email: admin@shoemart.com<br>
-                                    Password: admin123
-                                </small>
-                            </div>
-                            
                             <div class="back-to-store mt-3">
                                 <a href="{{ route('home') }}" class="text-decoration-none">
                                     <i class="fas fa-arrow-left me-2"></i>
@@ -480,13 +472,6 @@
 
         .btn-login:hover::before {
             left: 100%;
-        }
-
-        .demo-credentials {
-            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
-            padding: 1rem;
-            border-radius: 10px;
-            border: 1px solid #dee2e6;
         }
 
         .back-to-store a {
