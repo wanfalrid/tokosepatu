@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ProdukController as AdminProdukController;
 use App\Http\Controllers\Admin\PesananController;
 use App\Http\Controllers\Admin\PelangganController;
 use App\Http\Controllers\Admin\LaporanController;
+use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\Auth\AuthController as CustomerAuthController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -102,6 +103,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Reports
         Route::get('laporan', [LaporanController::class, 'index'])->name('laporan.index');
         Route::get('laporan/export-sales', [LaporanController::class, 'exportSales'])->name('laporan.exportSales');
+        
+        // Settings
+        Route::get('pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::put('pengaturan/profile', [PengaturanController::class, 'updateProfile'])->name('pengaturan.updateProfile');
+        Route::put('pengaturan/password', [PengaturanController::class, 'updatePassword'])->name('pengaturan.updatePassword');
+        Route::put('pengaturan/system', [PengaturanController::class, 'updateSystem'])->name('pengaturan.updateSystem');
+        Route::post('pengaturan/clear-cache', [PengaturanController::class, 'clearCache'])->name('pengaturan.clearCache');
+        Route::post('pengaturan/backup', [PengaturanController::class, 'backup'])->name('pengaturan.backup');
+        Route::get('pengaturan/system-info', [PengaturanController::class, 'systemInfo'])->name('pengaturan.systemInfo');
         
         // Order management
         Route::get('pesanan', [PesananController::class, 'index'])->name('pesanan.index');
