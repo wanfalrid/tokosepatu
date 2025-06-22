@@ -101,18 +101,19 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            </div>
-
-                            <!-- Price & Stock -->
+                            </div>                            <!-- Price & Stock -->
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="number" class="form-control @error('harga') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('harga') is-invalid @enderror" 
                                            id="harga" name="harga" placeholder="Harga" 
-                                           value="{{ old('harga', $produk->harga) }}" 
-                                           min="0" step="0.01" required>
+                                           value="{{ old('harga', number_format($produk->harga, 0, ',', '.')) }}" 
+                                           pattern="[0-9.,]+" 
+                                           title="Masukkan harga dalam format angka (contoh: 1.500.000)"
+                                           required>
                                     <label for="harga">
                                         <i class="fas fa-money-bill me-2"></i>Harga (Rp)
                                     </label>
+                                    <div class="form-text">Format otomatis: 1.000.000</div>
                                     @error('harga')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -565,8 +566,7 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
     // Ensure CSRF token exists
     const csrfInput = this.querySelector('input[name="_token"]');
     if (!csrfInput) {
-        console.error('CSRF token is missing');
-    }
+        console.error('CSRF token is missing');    }
     
     submitBtn.classList.add('loading');
     
@@ -575,6 +575,31 @@ document.getElementById('productForm').addEventListener('submit', function(e) {
     
     // Don't disable all inputs, let form submit normally
     console.log('Form submitting to:', this.action, 'with method:', this.method);
+});
+
+// Auto-format price input with thousand separator
+document.getElementById('harga').addEventListener('input', function(e) {
+    let value = e.target.value;
+    
+    // Remove all non-numeric characters except digits
+    let numericValue = value.replace(/[^0-9]/g, '');
+    
+    // Format with thousand separator (dots)
+    if (numericValue) {
+        let formattedValue = new Intl.NumberFormat('id-ID').format(numericValue);
+        e.target.value = formattedValue;
+    }
+});
+
+// Ensure proper formatting on focus/blur
+document.getElementById('harga').addEventListener('blur', function(e) {
+    let value = e.target.value;
+    let numericValue = value.replace(/[^0-9]/g, '');
+    
+    if (numericValue) {
+        let formattedValue = new Intl.NumberFormat('id-ID').format(numericValue);
+        e.target.value = formattedValue;
+    }
 });
 
 // Real-time form validation

@@ -23,14 +23,23 @@ class ProdukController extends Controller
         $request->validate([
             'nama_produk' => 'required|string|max:255',
             'deskripsi' => 'required|string',
-            'harga' => 'required|numeric|min:0',
+            'harga' => 'required|string|max:20', // Changed to string to accept formatted input
             'stok' => 'required|integer|min:0',
             'merek' => 'required|string|max:100',
             'kategori' => 'required|string|max:100',
             'warna' => 'required|string|max:50',
             'ukuran' => 'required|string|max:100',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);        $gambarPath = null;
+        ]);
+        
+        // Clean price input (remove dots, commas, and Rp prefix from formatted currency)
+        $harga = str_replace(['Rp', '.', ',', ' '], '', $request->harga);
+        $harga = (float) $harga;
+        
+        // Additional validation for cleaned price
+        if ($harga < 0 || $harga > 99999999999) { // Up to 99 billion
+            return back()->withErrors(['harga' => 'Harga harus antara 0 dan 99.999.999.999'])->withInput();
+        }$gambarPath = null;
         if ($request->hasFile('gambar')) {
             $file = $request->file('gambar');
             $filename = 'product_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
@@ -45,12 +54,11 @@ class ProdukController extends Controller
                 'exists' => Storage::disk('public')->exists('product_images/' . $filename)
             ]);
         }
-        
-        $produk = Produk::create([
+          $produk = Produk::create([
             'id_produk' => 'PRD-' . strtoupper(Str::random(8)),
             'nama_produk' => $request->nama_produk,
             'deskripsi' => $request->deskripsi,
-            'harga' => $request->harga,
+            'harga' => $harga,
             'stok' => $request->stok,
             'merek' => $request->merek,
             'kategori' => $request->kategori,
@@ -72,11 +80,10 @@ class ProdukController extends Controller
     {
         return view('admin.produk.edit', compact('produk'));
     }    public function update(Request $request, Produk $produk)
-    {
-        $request->validate([
+    {        $request->validate([
             'nama_produk' => 'required|string|max:255',
             'deskripsi' => 'required|string',
-            'harga' => 'required|numeric|min:0',
+            'harga' => 'required|string|max:20', // Changed to string to accept formatted input
             'stok' => 'required|integer|min:0',
             'merek' => 'required|string|max:100',
             'kategori' => 'required|string|max:100',
@@ -85,10 +92,20 @@ class ProdukController extends Controller
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
         
+        // Clean price input (remove dots, commas, and Rp prefix from formatted currency)
+        $harga = str_replace(['Rp', '.', ',', ' '], '', $request->harga);
+        $harga = (float) $harga;
+        
+        // Additional validation for cleaned price
+        if ($harga < 0 || $harga > 99999999999) { // Up to 99 billion
+            return back()->withErrors(['harga' => 'Harga harus antara 0 dan 99.999.999.999'])->withInput();
+        }
+        
         $data = $request->only([
-            'nama_produk', 'deskripsi', 'harga', 'stok', 
+            'nama_produk', 'deskripsi', 'stok', 
             'merek', 'kategori', 'warna', 'ukuran'
-        ]);        if ($request->hasFile('gambar')) {
+        ]);
+        $data['harga'] = $harga;if ($request->hasFile('gambar')) {
             // Delete old image if exists
             if ($produk->gambar && Storage::disk('public')->exists('product_images/' . $produk->gambar)) {
                 Storage::disk('public')->delete('product_images/' . $produk->gambar);
