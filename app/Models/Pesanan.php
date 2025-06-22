@@ -21,6 +21,7 @@ class Pesanan extends Model
         'metode_pengiriman',
         'tanggal_pesanan',
         'estimasi_selesai',
+        'kurir',
         'nomor_resi',
         'ongkos_kirim',
         'alamat_pengiriman',

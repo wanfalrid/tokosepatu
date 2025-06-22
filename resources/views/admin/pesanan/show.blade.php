@@ -187,15 +187,8 @@
             <div class="card-body">
                 <div class="items-list">
                     @foreach($pesanan->detailPesanan as $detail)
-                    <div class="item-row">
-                        <div class="item-image">
-                            @if($detail->produk->gambar)
-                                <img src="{{ asset('storage/' . $detail->produk->gambar) }}" alt="{{ $detail->produk->nama }}">
-                            @else
-                                <div class="no-image">
-                                    <i class="fas fa-image"></i>
-                                </div>
-                            @endif
+                    <div class="item-row">                        <div class="item-image">
+                            <img src="{{ $detail->produk->image_url }}" alt="{{ $detail->produk->nama }}">
                         </div>
                         <div class="item-details">
                             <h6 class="item-name">{{ $detail->produk->nama }}</h6>
@@ -266,6 +259,75 @@
                             <option value="dibatalkan" {{ $pesanan->status_pesanan == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                         </select>
                     </div>
+                    
+                    <!-- Form Input Nomor Resi (hanya untuk status diproses) -->
+                    @if($pesanan->status_pesanan == 'diproses')
+                    <div class="resi-form-section mt-4">
+                        <h6 class="mb-3">
+                            <i class="fas fa-shipping-fast me-2"></i>Input Nomor Resi
+                        </h6>
+                        <form id="resiForm" onsubmit="submitResi(event)">
+                            @csrf
+                            <div class="row g-3">                                <div class="col-md-4">
+                                    <label class="form-label">Kurir:</label>
+                                    <select class="form-select" id="courier" name="courier" required>
+                                        <option value="">Pilih Kurir</option>
+                                        <option value="jne" {{ $pesanan->kurir == 'jne' ? 'selected' : '' }}>JNE</option>
+                                        <option value="pos" {{ $pesanan->kurir == 'pos' ? 'selected' : '' }}>POS Indonesia</option>
+                                        <option value="tiki" {{ $pesanan->kurir == 'tiki' ? 'selected' : '' }}>TIKI</option>
+                                        <option value="anteraja" {{ $pesanan->kurir == 'anteraja' ? 'selected' : '' }}>AnterAja</option>
+                                        <option value="sicepat" {{ $pesanan->kurir == 'sicepat' ? 'selected' : '' }}>SiCepat</option>
+                                        <option value="jnt" {{ $pesanan->kurir == 'jnt' ? 'selected' : '' }}>J&T Express</option>
+                                        <option value="ninja" {{ $pesanan->kurir == 'ninja' ? 'selected' : '' }}>Ninja Express</option>
+                                        <option value="idexpress" {{ $pesanan->kurir == 'idexpress' ? 'selected' : '' }}>ID Express</option>
+                                        <option value="spx" {{ $pesanan->kurir == 'spx' ? 'selected' : '' }}>Shopee Express</option>
+                                        <option value="lion" {{ $pesanan->kurir == 'lion' ? 'selected' : '' }}>Lion Parcel</option>
+                                        <option value="wahana" {{ $pesanan->kurir == 'wahana' ? 'selected' : '' }}>Wahana</option>
+                                        <option value="first" {{ $pesanan->kurir == 'first' ? 'selected' : '' }}>First Logistics</option>
+                                        <option value="rex" {{ $pesanan->kurir == 'rex' ? 'selected' : '' }}>REX Express</option>
+                                        <option value="sap" {{ $pesanan->kurir == 'sap' ? 'selected' : '' }}>SAP Express</option>
+                                        <option value="jet" {{ $pesanan->kurir == 'jet' ? 'selected' : '' }}>JET Express</option>
+                                        <option value="dse" {{ $pesanan->kurir == 'dse' ? 'selected' : '' }}>21 Express</option>
+                                        <option value="dakota" {{ $pesanan->kurir == 'dakota' ? 'selected' : '' }}>Dakota Cargo</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Nomor Resi:</label>
+                                    <input type="text" class="form-control" id="awb" name="awb" 
+                                           placeholder="Masukkan nomor resi" 
+                                           value="{{ $pesanan->nomor_resi }}" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="fas fa-save me-1"></i>Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    @endif
+                    
+                    <!-- Tracking Information (jika ada nomor resi) -->
+                    @if($pesanan->nomor_resi)
+                    <div class="tracking-section mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <i class="fas fa-route me-2"></i>Tracking Paket
+                            </h6>
+                            <button class="btn btn-outline-primary btn-sm" onclick="trackPackage()">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh Tracking
+                            </button>
+                        </div>
+                        
+                        <div id="trackingInfo" class="tracking-info">
+                            <div class="text-center p-3">
+                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                Loading tracking information...
+                            </div>
+                        </div>
+                    </div>
+                    @endif
                     
                     <div class="quick-actions">
                         <button class="btn btn-primary" onclick="printInvoice()">
@@ -727,6 +789,107 @@
     transform: translateY(-2px);
 }
 
+/* Resi Form Styling */
+.resi-form-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px dashed #dee2e6;
+}
+
+.resi-form-section h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Tracking Section Styling */
+.tracking-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #007bff;
+}
+
+.tracking-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.tracking-summary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.tracking-status {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.tracking-date {
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.tracking-history {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.tracking-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+    position: relative;
+}
+
+.tracking-item:last-child {
+    border-bottom: none;
+}
+
+.tracking-item::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: #007bff;
+    border-radius: 50%;
+    margin-right: 1rem;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.tracking-item:first-child::before {
+    background: #28a745;
+}
+
+.tracking-content {
+    flex: 1;
+}
+
+.tracking-desc {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.tracking-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.tracking-location {
+    font-size: 0.85rem;
+    color: #007bff;
+    font-style: italic;
+}
+
 @media (max-width: 768px) {
     .status-timeline {
         flex-direction: column;
@@ -814,17 +977,200 @@ function sendNotification() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Notifikasi berhasil dikirim');
-            } else {
-                alert('Gagal mengirim notifikasi');
+                alert('Notifikasi berhasil dikirim!');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat mengirim notifikasi');
         });
     }
 }
+
+// Submit nomor resi
+function submitResi(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.innerHTML;
+    
+    // Show loading
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Menyimpan...';
+    submitButton.disabled = true;
+      fetch(`/admin/pesanan/{{ $pesanan->id_pesanan }}/resi`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(async response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Response is not JSON:', text);
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: 'Nomor resi berhasil disimpan',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            
+            // Reload page to show tracking section
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            throw new Error(data.message || 'Gagal menyimpan nomor resi');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: error.message || 'Terjadi kesalahan saat menyimpan nomor resi'
+        });
+    })
+    .finally(() => {
+        // Reset button
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+// Track package using BinderByte API
+function trackPackage() {
+    const trackingInfo = document.getElementById('trackingInfo');
+    const pesananId = '{{ $pesanan->id_pesanan }}';
+    
+    // Show loading
+    trackingInfo.innerHTML = `
+        <div class="text-center p-3">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            Mengambil informasi tracking...
+        </div>
+    `;
+      fetch(`/admin/pesanan/${pesananId}/track`, {
+        method: 'GET',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(async response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Response is not JSON:', text);
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            displayTrackingInfo(data.tracking);
+        } else {
+            throw new Error(data.message || 'Gagal mengambil informasi tracking');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        trackingInfo.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${error.message || 'Gagal mengambil informasi tracking'}
+                <button class="btn btn-sm btn-outline-danger ms-2" onclick="trackPackage()">
+                    <i class="fas fa-redo me-1"></i>Coba Lagi
+                </button>
+            </div>
+        `;
+    });
+}
+
+// Display tracking information
+function displayTrackingInfo(tracking) {
+    const trackingInfo = document.getElementById('trackingInfo');
+    
+    if (!tracking || !tracking.summary) {
+        trackingInfo.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle me-2"></i>
+                Informasi tracking belum tersedia
+            </div>
+        `;
+        return;
+    }
+    
+    const summary = tracking.summary;
+    const history = tracking.history || [];
+    
+    let statusColor = 'primary';
+    if (summary.status === 'DELIVERED') statusColor = 'success';
+    else if (summary.status === 'ON_TRANSIT') statusColor = 'info';
+    else if (summary.status === 'PICKUP') statusColor = 'warning';
+    
+    let trackingHtml = `
+        <div class="tracking-summary bg-${statusColor} text-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="tracking-status">${summary.status || 'Unknown'}</div>
+                    <div class="tracking-date">${summary.date || 'N/A'}</div>
+                    ${summary.desc ? `<div class="mt-2"><small>${summary.desc}</small></div>` : ''}
+                </div>
+                <div class="text-end">
+                    <div><small>AWB: ${summary.awb || 'N/A'}</small></div>
+                    <div><small>${summary.courier || 'Unknown Courier'}</small></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    if (history.length > 0) {
+        trackingHtml += `
+            <div class="tracking-history">
+                <h6 class="mb-3">
+                    <i class="fas fa-history me-2"></i>Riwayat Pengiriman
+                </h6>
+        `;
+        
+        history.forEach(item => {
+            trackingHtml += `
+                <div class="tracking-item">
+                    <div class="tracking-content">
+                        <div class="tracking-desc">${item.desc || 'No description'}</div>
+                        <div class="tracking-time">
+                            <i class="fas fa-clock me-1"></i>${item.date || 'No date'}
+                        </div>
+                        ${item.location ? `<div class="tracking-location">📍 ${item.location}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        trackingHtml += '</div>';
+    }
+    
+    trackingInfo.innerHTML = trackingHtml;
+}
+
+// Auto-load tracking info on page load
+document.addEventListener('DOMContentLoaded', function() {
+    @if($pesanan->nomor_resi)
+        trackPackage();
+    @endif
+});
 
 function deleteOrder() {
     if (confirm('Apakah Anda yakin ingin menghapus pesanan ini? Tindakan ini tidak dapat dibatalkan.')) {
@@ -834,8 +1180,7 @@ function deleteOrder() {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(response => response.json())        .then(data => {
             if (data.success) {
                 window.location.href = '/admin/pesanan';
             } else {
@@ -849,4 +1194,53 @@ function deleteOrder() {
     }
 }
 </script>
+
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+/* Custom styles for SweetAlert2 */
+.swal2-popup {
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.swal2-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.swal2-content {
+    font-size: 1rem;
+    color: #666;
+}
+
+.swal2-confirm {
+    background: var(--primary-color);
+    color: white;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: background 0.3s ease;
+}
+
+.swal2-confirm:hover {
+    background: darken(var(--primary-color), 10%);
+}
+
+.swal2-cancel {
+    color: var(--primary-color);
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.swal2-cancel:hover {
+    color: darken(var(--primary-color), 10%);
+}
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@endpush
 @endsection

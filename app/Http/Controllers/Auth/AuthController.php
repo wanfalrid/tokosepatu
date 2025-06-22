@@ -300,8 +300,7 @@ class AuthController extends Controller
         
         return view('auth.orders.detail', compact('order'));
     }
-    
-    /**
+      /**
      * Show order tracking
      */
     public function orderTracking($id)
@@ -313,5 +312,76 @@ class AuthController extends Controller
                         ->firstOrFail();
         
         return view('auth.orders.tracking', compact('order'));
+    }
+
+    /**
+     * Track package using BinderByte API for customer
+     */
+    public function trackPackage($id)
+    {
+        try {
+            $customer = Auth::guard('customer')->user();
+            $order = Pesanan::where('id_pesanan', $id)
+                            ->where('id_pelanggan', $customer->id_pelanggan)
+                            ->first();
+            
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pesanan tidak ditemukan'
+                ], 404);
+            }
+            
+            if (!$order->nomor_resi || !$order->kurir) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Nomor resi atau kurir belum tersedia'
+                ]);
+            }
+            
+            $apiKey = '74c214db8373a74d99c63c1ec1404fefde45ab9325f2193b4da5686190e788f3';
+            $courier = $order->kurir;
+            $awb = $order->nomor_resi;
+            
+            // Call BinderByte API
+            $client = new \GuzzleHttp\Client();
+            $response = $client->get('https://api.binderbyte.com/v1/track', [
+                'query' => [
+                    'api_key' => $apiKey,
+                    'courier' => $courier,
+                    'awb' => $awb
+                ],
+                'timeout' => 30,
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'User-Agent' => 'TokoSepatu/1.0'
+                ]
+            ]);
+            
+            $data = json_decode($response->getBody(), true);
+            
+            if ($data && isset($data['status']) && $data['status'] == 200) {
+                return response()->json([
+                    'success' => true,
+                    'tracking' => $data['data']
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $data['message'] ?? 'Gagal melacak paket'
+                ]);
+            }
+            
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal terhubung ke API tracking: ' . $e->getMessage()
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

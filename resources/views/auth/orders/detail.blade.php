@@ -76,14 +76,16 @@
                                         @endswitch
                                     </p>
                                 </div>
-                            </div>
-                            <div class="col-md-6 text-end">
+                            </div>                            <div class="col-md-6 text-end">
                                 <div class="order-actions">
                                     @if($order->status_pesanan === 'dikirim' && $order->nomor_resi)
                                     <a href="{{ route('auth.orders.tracking', $order->id_pesanan) }}" 
-                                       class="btn btn-primary">
+                                       class="btn btn-primary me-2">
                                         <i class="fas fa-map-marker-alt me-2"></i>Lacak Pesanan
                                     </a>
+                                    <button class="btn btn-outline-primary" onclick="refreshTracking()">
+                                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                                    </button>
                                     @endif
                                     @if($order->status_pesanan === 'selesai')
                                     <button class="btn btn-success" disabled>
@@ -92,9 +94,47 @@
                                     @endif
                                 </div>
                             </div>
+                        </div>                    </div>
+                </div>                <!-- Tracking Information (jika ada nomor resi) -->
+                @if($order->nomor_resi && $order->kurir)
+                <div class="tracking-card mb-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-1">
+                                    <i class="fas fa-route me-2"></i>Tracking Pengiriman
+                                </h5>
+                                <small class="text-muted">{{ strtoupper($order->kurir) }} - {{ $order->nomor_resi }}</small>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm" onclick="refreshTracking()">
+                                <i class="fas fa-sync-alt me-1"></i>Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="trackingInfo" class="tracking-info">
+                            <div class="text-center p-4">
+                                <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
+                                <span class="text-muted">Memuat informasi tracking...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+                @elseif($order->status_pesanan === 'dikirim')
+                <div class="tracking-card mb-4" data-aos="fade-up" data-aos-delay="150">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-route me-2"></i>Tracking Pengiriman
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Nomor resi belum tersedia. Informasi tracking akan ditampilkan setelah admin menginput nomor resi.
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Order Items -->
                 <div class="order-items-card mb-4" data-aos="fade-up" data-aos-delay="200">
@@ -106,10 +146,9 @@
                     <div class="card-body">
                         @foreach($order->detailPesanan as $item)
                         <div class="order-item">
-                            <div class="row align-items-center">
-                                <div class="col-md-2">
+                            <div class="row align-items-center">                                <div class="col-md-2">
                                     <div class="product-image">
-                                        <img src="{{ $item->produk->gambar }}" alt="{{ $item->produk->nama_produk }}" class="product-thumb">
+                                        <img src="{{ $item->produk->image_url }}" alt="{{ $item->produk->nama_produk }}" class="product-thumb">
                                     </div>
                                 </div>
                                 <div class="col-md-5">
@@ -484,6 +523,121 @@
     color: #721c24;
 }
 
+/* Tracking Card Styles */
+.tracking-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-left: 4px solid #007bff;
+}
+
+.tracking-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.tracking-summary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.tracking-status {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.tracking-date {
+    opacity: 0.9;
+    font-size: 1rem;
+}
+
+.tracking-history {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.tracking-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e9ecef;
+    position: relative;
+}
+
+.tracking-item:last-child {
+    border-bottom: none;
+}
+
+.tracking-item::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: #007bff;
+    border-radius: 50%;
+    margin-right: 1rem;
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.tracking-item:first-child::before {
+    background: #28a745;
+}
+
+.tracking-content {
+    flex: 1;
+}
+
+.tracking-desc {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.tracking-time {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.tracking-location {
+    font-size: 0.9rem;
+    color: #007bff;
+    font-style: italic;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card-title {
+    margin: 0;
+    color: #333;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+}
+
 @media (max-width: 768px) {
     .page-title {
         font-size: 2rem;
@@ -501,6 +655,149 @@
 <script>
 // Initialize AOS
 AOS.init();
+
+// Track package using BinderByte API
+function trackPackage() {
+    const trackingInfo = document.getElementById('trackingInfo');
+    const orderId = '{{ $order->id_pesanan }}';
+    
+    if (!trackingInfo) return;
+    
+    // Show loading
+    trackingInfo.innerHTML = `
+        <div class="text-center p-4">
+            <div class="spinner-border spinner-border-sm me-2 text-primary" role="status"></div>
+            <span class="text-muted">Mengambil informasi tracking...</span>
+        </div>
+    `;
+    
+    fetch(`/auth/orders/${orderId}/track`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(async response => {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Response is not JSON:', text);
+            throw new Error('Server returned non-JSON response');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            displayTrackingInfo(data.tracking);
+        } else {
+            throw new Error(data.message || 'Gagal mengambil informasi tracking');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        trackingInfo.innerHTML = `
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${error.message || 'Gagal mengambil informasi tracking'}
+                <button class="btn btn-sm btn-outline-primary ms-2" onclick="trackPackage()">
+                    <i class="fas fa-redo me-1"></i>Coba Lagi
+                </button>
+            </div>
+        `;
+    });
+}
+
+// Display tracking information
+function displayTrackingInfo(tracking) {
+    const trackingInfo = document.getElementById('trackingInfo');
+    
+    if (!tracking || !tracking.summary) {
+        trackingInfo.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Informasi tracking belum tersedia
+            </div>
+        `;
+        return;
+    }
+    
+    const summary = tracking.summary;
+    const history = tracking.history || [];
+    
+    let statusColor = 'primary';
+    if (summary.status === 'DELIVERED') statusColor = 'success';
+    else if (summary.status === 'ON_TRANSIT') statusColor = 'info';
+    else if (summary.status === 'PICKUP') statusColor = 'warning';
+    
+    let trackingHtml = `
+        <div class="tracking-summary bg-${statusColor} text-white">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="tracking-status">${summary.status || 'Unknown'}</div>
+                    <div class="tracking-date">${summary.date || 'N/A'}</div>
+                    ${summary.desc ? `<div class="mt-2">${summary.desc}</div>` : ''}
+                </div>
+                <div class="text-end">
+                    <div><small>AWB: ${summary.awb || 'N/A'}</small></div>
+                    <div><small>${summary.courier || 'Unknown Courier'}</small></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    if (history.length > 0) {
+        trackingHtml += `
+            <div class="tracking-history">
+                <h6 class="mb-3 mt-3">
+                    <i class="fas fa-history me-2"></i>Riwayat Pengiriman
+                </h6>
+        `;
+        
+        history.forEach(item => {
+            trackingHtml += `
+                <div class="tracking-item">
+                    <div class="tracking-content">
+                        <div class="tracking-desc">${item.desc || 'No description'}</div>
+                        <div class="tracking-time">
+                            <i class="fas fa-clock me-1"></i>${item.date || 'No date'}
+                        </div>
+                        ${item.location ? `<div class="tracking-location">📍 ${item.location}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        trackingHtml += '</div>';
+    }
+    
+    trackingInfo.innerHTML = trackingHtml;
+}
+
+// Refresh tracking function
+function refreshTracking() {
+    const refreshButton = document.querySelector('button[onclick="refreshTracking()"]');
+    if (refreshButton) {
+        const originalContent = refreshButton.innerHTML;
+        refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Refreshing...';
+        refreshButton.disabled = true;
+        
+        setTimeout(() => {
+            trackPackage();
+            refreshButton.innerHTML = originalContent;
+            refreshButton.disabled = false;
+        }, 500);
+    } else {
+        trackPackage();
+    }
+}
+
+// Auto-load tracking info on page load
+document.addEventListener('DOMContentLoaded', function() {
+    @if($order->nomor_resi && $order->kurir)
+        trackPackage();
+    @endif
+});
 </script>
 @endpush
 @endsection

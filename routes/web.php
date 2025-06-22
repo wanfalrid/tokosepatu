@@ -76,6 +76,7 @@ Route::prefix('auth')->name('auth.')->group(function () {
         Route::get('orders', [CustomerAuthController::class, 'orders'])->name('orders');
         Route::get('orders/{id}', [CustomerAuthController::class, 'orderDetail'])->name('orders.detail');
         Route::get('orders/{id}/tracking', [CustomerAuthController::class, 'orderTracking'])->name('orders.tracking');
+        Route::get('orders/{id}/track', [CustomerAuthController::class, 'trackPackage'])->name('orders.track');
     });
 });
 
@@ -128,5 +129,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('pesanan', [PesananController::class, 'index'])->name('pesanan.index');
         Route::get('pesanan/{id}', [PesananController::class, 'show'])->name('pesanan.show');
         Route::put('pesanan/{id}/status', [PesananController::class, 'updateStatus'])->name('pesanan.updateStatus');
+        Route::post('pesanan/{id}/resi', [PesananController::class, 'updateResi'])->name('pesanan.updateResi');
+        Route::get('pesanan/{id}/track', [PesananController::class, 'trackPackage'])->name('pesanan.track');
     });
 });

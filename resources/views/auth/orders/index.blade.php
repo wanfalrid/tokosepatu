@@ -111,7 +111,7 @@
                             <div class="order-item">
                                 <div class="d-flex align-items-center">
                                     <div class="item-image me-3">
-                                        <img src="{{ $item->produk->gambar }}" alt="{{ $item->produk->nama_produk }}" class="product-thumb">
+                                        <img src="{{ $item->produk->image_url }}" alt="{{ $item->produk->nama_produk }}" class="product-thumb">
                                     </div>
                                     <div class="item-info flex-grow-1">
                                         <h6 class="item-name mb-1">{{ $item->produk->nama_produk }}</h6>

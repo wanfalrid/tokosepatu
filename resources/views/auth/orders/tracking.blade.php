@@ -76,9 +76,25 @@
                             <i class="fas fa-route me-2"></i>Riwayat Pengiriman
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <div class="tracking-timeline">
-                            @php
+                    <div class="card-body">                        <div class="tracking-timeline">                            @php
+                                // Pastikan $baseDate tidak null dengan fallback ke current time
+                                $baseDate = $order->dibuat_pada ?? $order->tanggal_pesanan ?? now();
+                                
+                                // Fungsi helper untuk safe date calculation
+                                $safeDateCalc = function($baseDate, $method, $value = null) {
+                                    if (!$baseDate) return 'N/A';
+                                    try {
+                                        $date = $baseDate->copy();
+                                        if ($value !== null) {
+                                            return $date->$method($value)->format('d M Y H:i');
+                                        } else {
+                                            return $date->$method()->format('d M Y H:i');
+                                        }
+                                    } catch (Exception $e) {
+                                        return 'N/A';
+                                    }
+                                };
+                                
                                 $trackingSteps = [
                                     [
                                         'status' => 'order_placed',
@@ -86,7 +102,7 @@
                                         'description' => 'Pesanan Anda telah berhasil dibuat dan akan segera diproses',
                                         'icon' => 'fas fa-shopping-cart',
                                         'completed' => true,
-                                        'date' => $order->tanggal_pesanan->format('d M Y H:i')
+                                        'date' => $baseDate ? $baseDate->format('d M Y H:i') : 'N/A'
                                     ],
                                     [
                                         'status' => 'confirmed',
@@ -94,7 +110,7 @@
                                         'description' => 'Pesanan Anda telah dikonfirmasi dan sedang diproses',
                                         'icon' => 'fas fa-check-circle',
                                         'completed' => in_array($order->status_pesanan, ['diproses', 'dikirim', 'selesai']),
-                                        'date' => in_array($order->status_pesanan, ['diproses', 'dikirim', 'selesai']) ? $order->created_at->addHours(2)->format('d M Y H:i') : null
+                                        'date' => in_array($order->status_pesanan, ['diproses', 'dikirim', 'selesai']) ? $safeDateCalc($baseDate, 'addHours', 2) : null
                                     ],
                                     [
                                         'status' => 'packed',
@@ -102,7 +118,7 @@
                                         'description' => 'Pesanan Anda sedang dikemas dan siap untuk dikirim',
                                         'icon' => 'fas fa-box',
                                         'completed' => in_array($order->status_pesanan, ['dikirim', 'selesai']),
-                                        'date' => in_array($order->status_pesanan, ['dikirim', 'selesai']) ? $order->created_at->addHours(6)->format('d M Y H:i') : null
+                                        'date' => in_array($order->status_pesanan, ['dikirim', 'selesai']) ? $safeDateCalc($baseDate, 'addHours', 6) : null
                                     ],
                                     [
                                         'status' => 'shipped',
@@ -110,7 +126,7 @@
                                         'description' => 'Pesanan Anda sedang dalam perjalanan ke alamat tujuan',
                                         'icon' => 'fas fa-truck',
                                         'completed' => in_array($order->status_pesanan, ['dikirim', 'selesai']),
-                                        'date' => in_array($order->status_pesanan, ['dikirim', 'selesai']) ? $order->created_at->addDay()->format('d M Y H:i') : null
+                                        'date' => in_array($order->status_pesanan, ['dikirim', 'selesai']) ? $safeDateCalc($baseDate, 'addDay') : null
                                     ],
                                     [
                                         'status' => 'delivered',
@@ -118,7 +134,7 @@
                                         'description' => 'Pesanan Anda telah berhasil diterima di alamat tujuan',
                                         'icon' => 'fas fa-home',
                                         'completed' => $order->status_pesanan === 'selesai',
-                                        'date' => $order->status_pesanan === 'selesai' ? $order->created_at->addDays(3)->format('d M Y H:i') : null
+                                        'date' => $order->status_pesanan === 'selesai' ? $safeDateCalc($baseDate, 'addDays', 3) : null
                                     ]
                                 ];
                             @endphp

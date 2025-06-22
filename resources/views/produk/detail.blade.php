@@ -10,8 +10,7 @@
             <!-- Product Images -->
             <div class="col-lg-6" data-aos="fade-right">
                 <div class="product-gallery">
-                    <div class="main-image mb-3">
-                        <img src="{{ $produk->gambar ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80' }}" 
+                    <div class="main-image mb-3">                        <img src="{{ $produk->image_url }}" 
                              class="img-fluid rounded-3 shadow-lg" 
                              alt="{{ $produk->nama_produk }}"
                              id="mainProductImage"
@@ -19,8 +18,7 @@
                     </div>
                     
                     <!-- Thumbnail Images -->
-                    <div class="thumbnail-images d-flex gap-2">
-                        <img src="{{ $produk->gambar ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' }}" 
+                    <div class="thumbnail-images d-flex gap-2">                        <img src="{{ $produk->image_url }}" 
                              class="img-thumbnail thumbnail-img active" 
                              style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
                              onclick="changeMainImage(this.src)">

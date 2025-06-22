@@ -40,9 +40,15 @@ class Produk extends Model
     public function getImageUrlAttribute()
     {
         if ($this->gambar) {
+            // Check if it's already a full URL (starts with http/https)
+            if (filter_var($this->gambar, FILTER_VALIDATE_URL)) {
+                return $this->gambar;
+            }
+            // Otherwise, it's a local file in storage
             return asset('storage/product_images/' . $this->gambar);
         }
-        return null;
+        // Fallback to default image
+        return asset('images/no-image.svg');
     }
 
     public function detailPesanan()

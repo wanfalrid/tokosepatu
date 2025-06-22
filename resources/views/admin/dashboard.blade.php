@@ -206,8 +206,7 @@
                 <div class="card-body">
                     @forelse($topProduk as $produk)
                     <div class="product-item d-flex align-items-center mb-3">
-                        <div class="product-image me-3">
-                            <img src="{{ $produk->gambar ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=80&q=80' }}" 
+                        <div class="product-image me-3">                            <img src="{{ $produk->image_url }}" 
                                  alt="{{ $produk->nama_produk }}" 
                                  class="rounded">
                         </div>

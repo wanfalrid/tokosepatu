@@ -50,17 +50,9 @@
                     <div class="bg-gray-50 rounded-xl p-6 mb-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Produk yang Dipesan</h3>
                         <div class="space-y-4">
-                            @foreach($order->detailPesanan as $detail)
-                            <div class="flex items-center space-x-4 p-4 bg-white rounded-lg">
-                                @if($detail->produk->gambar)
-                                    <img src="{{ asset('storage/' . $detail->produk->gambar) }}" 
-                                         alt="{{ $detail->produk->nama }}" 
-                                         class="w-16 h-16 object-cover rounded-lg">
-                                @else
-                                    <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                                        <i class="fas fa-image text-gray-400"></i>
-                                    </div>
-                                @endif
+                            @foreach($order->detailPesanan as $detail)                            <div class="flex items-center space-x-4 p-4 bg-white rounded-lg">                                <img src="{{ $detail->produk->image_url }}" 
+                                     alt="{{ $detail->produk->nama }}" 
+                                     class="w-16 h-16 object-cover rounded-lg">
                                 <div class="flex-1 text-left">
                                     <h4 class="font-semibold text-gray-800">{{ $detail->produk->nama }}</h4>
                                     <p class="text-sm text-gray-600">
