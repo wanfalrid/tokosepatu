@@ -112,8 +112,7 @@
             @foreach($produk as $index => $item)
             <div class="col-lg-3 col-md-6 product-item" data-aos="fade-up" data-aos-delay="{{ ($index % 4 + 1) * 100 }}">
                 <div class="card product-card h-100 border-0 shadow-sm">
-                    <div class="position-relative overflow-hidden">
-                        <img src="{{ $item->gambar ?: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}" 
+                    <div class="position-relative overflow-hidden">                        <img src="{{ $item->image_url }}" 
                              class="card-img-top" 
                              alt="{{ $item->nama_produk }}"
                              style="height: 250px; object-fit: cover;">
