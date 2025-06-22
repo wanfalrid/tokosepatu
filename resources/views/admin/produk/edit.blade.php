@@ -11,13 +11,12 @@
                 <h1 class="page-title">
                     <i class="fas fa-edit me-3"></i>Edit Produk
                 </h1>
-                <p class="page-subtitle">Perbarui informasi produk: {{ $produk->nama }}</p>
+                <p class="page-subtitle">Perbarui informasi produk: {{ $produk->nama_produk }}</p>
             </div>
             <div class="page-actions">
                 <a href="{{ route('admin.produk.index') }}" class="btn btn-outline-secondary me-2">
                     <i class="fas fa-arrow-left me-2"></i>Kembali
-                </a>
-                <a href="{{ route('admin.produk.show', $produk->id) }}" class="btn btn-outline-info">
+                </a>                <a href="{{ route('admin.produk.show', $produk->id_produk) }}" class="btn btn-outline-info">
                     <i class="fas fa-eye me-2"></i>Lihat Detail
                 </a>
             </div>
@@ -32,21 +31,20 @@
                     <h3 class="form-title">
                         <i class="fas fa-info-circle me-2"></i>Edit Informasi Produk
                     </h3>
-                    <div class="product-id-badge">ID: #{{ $produk->id }}</div>
+                    <div class="product-id-badge">ID: #{{ $produk->id_produk }}</div>
                 </div>
                 <div class="form-card-body">
-                    <form action="{{ route('admin.produk.update', $produk->id) }}" method="POST" enctype="multipart/form-data" id="productForm">
+                    <form action="{{ route('admin.produk.update', $produk->id_produk) }}" method="POST" enctype="multipart/form-data" id="productForm">
                         @csrf
                         @method('PUT')
                         
-                        <div class="row g-4">
-                            <!-- Product Name -->
+                        <div class="row g-4">                            <!-- Product Name -->
                             <div class="col-12">
                                 <div class="form-floating">
-                                    <input type="text" class="form-control @error('nama') is-invalid @enderror" 
-                                           id="nama" name="nama" placeholder="Nama Produk" 
-                                           value="{{ old('nama', $produk->nama) }}" required>
-                                    <label for="nama">
+                                    <input type="text" class="form-control @error('nama_produk') is-invalid @enderror" 
+                                           id="nama_produk" name="nama_produk" placeholder="Nama Produk" 
+                                           value="{{ old('nama_produk', $produk->nama_produk) }}" required>
+                                    <label for="nama_produk">
                                         <i class="fas fa-tag me-2"></i>Nama Produk
                                     </label>
                                     @error('nama')

@@ -119,6 +119,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('pengaturan/backup', [PengaturanController::class, 'backup'])->name('pengaturan.backup');
         Route::get('pengaturan/system-info', [PengaturanController::class, 'systemInfo'])->name('pengaturan.systemInfo');
         
+        // CSRF Token refresh helper
+        Route::get('csrf-token', function () {
+            return response()->json(['csrf_token' => csrf_token()]);
+        })->name('csrf.token');
+        
         // Order management
         Route::get('pesanan', [PesananController::class, 'index'])->name('pesanan.index');
         Route::get('pesanan/{id}', [PesananController::class, 'show'])->name('pesanan.show');

@@ -30,20 +30,42 @@
                         <i class="fas fa-info-circle me-2"></i>Informasi Produk
                     </h3>
                 </div>
-                <div class="form-card-body">
+                <div class="form-card-body">                    <!-- Debug Info -->
+                    @if(config('app.debug'))
+                        <div class="alert alert-info mb-3">
+                            <small>
+                                Debug: Session ID: {{ session()->getId() }}<br>
+                                CSRF Token: {{ csrf_token() }}<br>
+                                Route: {{ route('admin.produk.store') }}<br>
+                                Auth Guard: {{ Auth::guard('admin')->check() ? 'Authenticated' : 'Not Authenticated' }}<br>
+                                Session Driver: {{ config('session.driver') }}
+                            </small>
+                        </div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    
                     <form action="{{ route('admin.produk.store') }}" method="POST" enctype="multipart/form-data" id="productForm">
                         @csrf
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}" id="csrf-token">
                         
-                        <div class="row g-4">
-                            <!-- Product Name -->
+                        <div class="row g-4">                            <!-- Product Name -->
                             <div class="col-12">
                                 <div class="form-floating">
-                                    <input type="text" class="form-control @error('nama') is-invalid @enderror" 
-                                           id="nama" name="nama" placeholder="Nama Produk" value="{{ old('nama') }}" required>
-                                    <label for="nama">
+                                    <input type="text" class="form-control @error('nama_produk') is-invalid @enderror" 
+                                           id="nama_produk" name="nama_produk" placeholder="Nama Produk" value="{{ old('nama_produk') }}" required>
+                                    <label for="nama_produk">
                                         <i class="fas fa-tag me-2"></i>Nama Produk
                                     </label>
-                                    @error('nama')
+                                    @error('nama_produk')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -401,6 +423,14 @@
 </style>
 
 <script>
+// Add CSRF token to meta tag if not exists
+if (!document.querySelector('meta[name="csrf-token"]')) {
+    const metaTag = document.createElement('meta');
+    metaTag.name = 'csrf-token';
+    metaTag.content = '{{ csrf_token() }}';
+    document.head.appendChild(metaTag);
+}
+
 function previewImage(input) {
     const preview = document.getElementById('imagePreview');
     
@@ -422,14 +452,142 @@ function previewImage(input) {
     }
 }
 
+// Handle CSRF token refresh
+function refreshCSRFToken() {
+    return fetch('{{ route("admin.csrf.token") }}', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.csrf_token) {
+            document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', data.csrf_token);
+            document.querySelector('input[name="_token"]').value = data.csrf_token;
+            document.getElementById('csrf-token').value = data.csrf_token;
+            return data.csrf_token;
+        }
+        throw new Error('Could not refresh CSRF token');
+    })
+    .catch(error => {
+        console.log('CSRF token refresh failed:', error);
+        // Fallback: get token from create page
+        return fetch('{{ route("admin.produk.create") }}', {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/html',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Extract CSRF token from response
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const csrfToken = doc.querySelector('input[name="_token"]')?.value;
+            
+            if (csrfToken) {
+                document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', csrfToken);
+                document.querySelector('input[name="_token"]').value = csrfToken;
+                document.getElementById('csrf-token').value = csrfToken;
+                return csrfToken;
+            }
+            throw new Error('Could not refresh CSRF token from create page');
+        })
+        .catch(() => {
+            // Final fallback: reload page
+            window.location.reload();
+        });
+    });
+}
+
+// Form submission with error handling
 document.getElementById('productForm').addEventListener('submit', function(e) {
-    const submitBtn = document.querySelector('.btn-submit');
-    submitBtn.classList.add('loading');
+    const form = this;
+    const submitButton = form.querySelector('button[type="submit"]');
     
-    // Disable all form inputs
-    const inputs = this.querySelectorAll('input, select, textarea, button');
-    inputs.forEach(input => input.disabled = true);
+    // Check if this is a retry (prevent infinite loops)
+    if (submitButton.dataset.retrying === 'true') {
+        return true; // Allow normal form submission
+    }
+    
+    e.preventDefault();
+    
+    const originalText = submitButton.innerHTML;
+    
+    // Show loading
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Menyimpan...';
+    submitButton.disabled = true;
+    
+    // Create FormData
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="_token"]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (response.status === 419) {
+            // CSRF token expired - refresh and retry
+            return refreshCSRFToken().then(() => {
+                // Reset button and retry
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+                submitButton.dataset.retrying = 'true';
+                submitButton.click();
+                return null;
+            });
+        }
+        
+        if (response.redirected) {
+            // Success redirect
+            window.location.href = response.url;
+            return null;
+        }
+        
+        return response.text();
+    })
+    .then(data => {
+        if (data === null) return; // Already handled
+        
+        // Check if response contains success indicator
+        if (data.includes('success') || data.includes('berhasil') || data.includes('admin/produk')) {
+            window.location.href = '{{ route("admin.produk.index") }}';
+        } else {
+            // Probably validation errors, submit normally
+            submitButton.dataset.retrying = 'true';
+            form.submit();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        
+        // Reset button
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+        
+        if (error.message.includes('CSRF') || error.message.includes('419')) {
+            // Try to refresh CSRF token and retry
+            refreshCSRFToken().then(() => {
+                submitButton.dataset.retrying = 'true';
+                submitButton.click();
+            });
+        } else {
+            // Submit normally to let Laravel handle validation
+            submitButton.dataset.retrying = 'true';
+            form.submit();
+        }
+    });
 });
+
+// Refresh CSRF token periodically (every 10 minutes)
+setInterval(refreshCSRFToken, 10 * 60 * 1000);
 
 // Auto-format price input
 document.getElementById('harga').addEventListener('input', function(e) {

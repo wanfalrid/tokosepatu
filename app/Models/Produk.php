@@ -20,8 +20,10 @@ class Produk extends Model
         'gambar',
         'deskripsi',
         'merek',
+        'kategori',
         'ukuran',
         'warna',
+        'dibuat_pada',
     ];
 
     protected $casts = [
