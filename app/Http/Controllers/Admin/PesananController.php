@@ -16,12 +16,17 @@ class PesananController extends Controller
                           ->paginate(10);
         return view('admin.pesanan.index', compact('pesanan'));
     }
-    
-    public function show($id)
+      public function show($id)
     {
-        $pesanan = Pesanan::with(['detailPesanan.produk', 'pembayaran', 'trackingPesanan'])
+        $pesanan = Pesanan::with(['detailPesanan.produk', 'pembayaran', 'trackingPesanan', 'pelanggan'])
                           ->where('id_pesanan', $id)
                           ->firstOrFail();
+        
+        // Debug: Load detail pesanan dengan subtotal
+        $pesanan->load(['detailPesanan' => function($query) {
+            $query->with('produk');
+        }]);
+        
         return view('admin.pesanan.show', compact('pesanan'));
     }
       public function updateStatus(Request $request, $id)

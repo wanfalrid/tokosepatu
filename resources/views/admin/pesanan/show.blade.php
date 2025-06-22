@@ -130,10 +130,11 @@
                     <div class="summary-item">
                         <span class="summary-label">Total Item:</span>
                         <span class="summary-value">{{ $pesanan->detailPesanan->sum('jumlah') }} item</span>
-                    </div>
-                    <div class="summary-item total-item">
+                    </div>                    <div class="summary-item total-item">
                         <span class="summary-label">Total Pembayaran:</span>
-                        <span class="summary-value total-amount">Rp {{ number_format($pesanan->total, 0, ',', '.') }}</span>
+                        <span class="summary-value total-amount">
+                            Rp {{ number_format($pesanan->total_harga ?: $pesanan->detailPesanan->sum('subtotal'), 0, ',', '.') }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -153,10 +154,11 @@
                                 <span class="payment-badge payment-{{ strtolower($pesanan->pembayaran->status_pembayaran) }}">
                                     {{ ucfirst($pesanan->pembayaran->status_pembayaran) }}
                                 </span>
-                            </div>
-                            <div class="payment-info-item">
+                            </div>                            <div class="payment-info-item">
                                 <span class="payment-label">Jumlah:</span>
-                                <span class="payment-value">Rp {{ number_format($pesanan->pembayaran->jumlah_bayar, 0, ',', '.') }}</span>
+                                <span class="payment-value">
+                                    Rp {{ number_format($pesanan->pembayaran->jumlah_bayar ?? ($pesanan->total_harga ?: $pesanan->detailPesanan->sum('subtotal')), 0, ',', '.') }}
+                                </span>
                             </div>
                             <div class="payment-info-item">
                                 <span class="payment-label">Tanggal:</span>
@@ -230,14 +232,14 @@
                         <div class="total-row">
                             <span class="total-label">Subtotal:</span>
                             <span class="total-value">Rp {{ number_format($pesanan->detailPesanan->sum('subtotal'), 0, ',', '.') }}</span>
-                        </div>
-                        <div class="total-row">
+                        </div>                        <div class="total-row">
                             <span class="total-label">Ongkos Kirim:</span>
-                            <span class="total-value">Rp 0</span>
-                        </div>
-                        <div class="total-row final-total">
+                            <span class="total-value">Rp {{ number_format($pesanan->ongkos_kirim ?? 0, 0, ',', '.') }}</span>
+                        </div>                        <div class="total-row final-total">
                             <span class="total-label">Total:</span>
-                            <span class="total-value">Rp {{ number_format($pesanan->total, 0, ',', '.') }}</span>
+                            <span class="total-value">
+                                Rp {{ number_format(($pesanan->total_harga ?: $pesanan->detailPesanan->sum('subtotal')) + ($pesanan->ongkos_kirim ?? 0), 0, ',', '.') }}
+                            </span>
                         </div>
                     </div>
                 </div>
